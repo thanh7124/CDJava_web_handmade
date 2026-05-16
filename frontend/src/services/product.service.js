@@ -19,7 +19,14 @@ export function getNewArrivalProducts() {
 export function getProductById(id) {
   return products.find((product) => product.id === Number(id));
 }
-
+export function getRelatedProducts(productId, category) {
+  return products
+    .filter(
+      (product) =>
+        product.id !== Number(productId) && product.category === category
+    )
+    .slice(0, 4);
+}
 export function formatCurrency(value) {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
