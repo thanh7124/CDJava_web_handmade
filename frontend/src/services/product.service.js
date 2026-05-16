@@ -1,18 +1,28 @@
-// Product Service
-export const productService = {
-  getProducts: async () => {
-    // Fetch products
-  },
-  getProductById: async (id) => {
-    // Fetch single product
-  },
-  createProduct: async (productData) => {
-    // Create product
-  },
-  updateProduct: async (id, productData) => {
-    // Update product
-  },
-  deleteProduct: async (id) => {
-    // Delete product
-  },
-};
+import { products } from "../data/products";
+
+export function getAllProducts() {
+  return products;
+}
+
+export function getFeaturedProducts() {
+  return products.slice(0, 6);
+}
+
+export function getBestSellerProducts() {
+  return [...products].sort((a, b) => b.sold - a.sold).slice(0, 4);
+}
+
+export function getNewArrivalProducts() {
+  return products.slice(-4).reverse();
+}
+
+export function getProductById(id) {
+  return products.find((product) => product.id === Number(id));
+}
+
+export function formatCurrency(value) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(value);
+}
