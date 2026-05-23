@@ -10,9 +10,9 @@ function Header() {
 
       <nav className="nav-links">
         <Link to="/">Trang chủ</Link>
-        <a href="#products">Sản phẩm</a>
-        <a href="#categories">Danh mục</a>
-        <a href="#about">Về chúng tôi</a>
+        <Link to="/products">Sản phẩm</Link>
+        <a href="/#categories">Danh mục</a>
+        <a href="/#about">Về chúng tôi</a>
       </nav>
 
       <div className="nav-actions">
