@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getProductById, formatCurrency } from '../../services/product.service';
+import { getProductById, getRelatedProducts, formatCurrency } from '../../services/product.service';
 import './ProductDetail.css';
 import './Home.css';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
+import ProductSection from '../../components/home/ProductSection';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [activeTab, setActiveTab] = useState('description');
 
   useEffect(() => {
     // Trong ứng dụng thực tế, đây sẽ là lệnh gọi API
     const fetchedProduct = getProductById(id || 1); // Fallback to 1 if no id for demo
     if (fetchedProduct) {
       setProduct(fetchedProduct);
+      const related = getRelatedProducts(fetchedProduct.id, fetchedProduct.category);
+      setRelatedProducts(related);
     } else {
       // Optional: navigate to 404 or home if not found
       // navigate('/');
@@ -42,6 +47,13 @@ export default function ProductDetail() {
       setQuantity(q => q + 1);
     }
   };
+
+  // Mock Reviews Data
+  const mockReviews = [
+    { id: 1, user: 'Nguyễn Văn A', rating: 5, date: '10/05/2026', comment: 'Sản phẩm rất đẹp, đóng gói cẩn thận. Giao hàng nhanh!' },
+    { id: 2, user: 'Trần Thị B', rating: 4, date: '08/05/2026', comment: 'Màu sắc y như hình, chất liệu gốm chắc chắn. Hơi nhỏ hơn mình nghĩ một chút nhưng vẫn đáng tiền.' },
+    { id: 3, user: 'Lê Hoàng C', rating: 5, date: '01/05/2026', comment: 'Rất ưng ý, thiết kế tối giản mà sang trọng. Mình sẽ mua thêm để tặng bạn bè.' }
+  ];
 
   return (
     <div className="home-page">
@@ -127,6 +139,84 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+
+        {/* Tabs: Description & Reviews */}
+        <div className="product-more-info">
+          <div className="tabs">
+            <button 
+              className={`tab-btn ${activeTab === 'description' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('description')}
+            >
+              Mô tả chi tiết
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'reviews' ? 'active' : ''}`} 
+              onClick={() => setActiveTab('reviews')}
+            >
+              Đánh giá & Nhận xét
+            </button>
+          </div>
+          
+          <div className="tab-content">
+            {activeTab === 'description' && (
+              <div className="description-content">
+                <h3>Thông tin sản phẩm</h3>
+                <p>{product.description}</p>
+                <p>Tất cả sản phẩm handmade tại cửa hàng đều được chế tác thủ công với sự tỉ mỉ và tâm huyết. Sự khác biệt nhỏ về màu sắc hay kích thước giữa các sản phẩm là minh chứng cho tính độc bản của mỗi tác phẩm.</p>
+                <ul>
+                  <li>Chất liệu: Tự nhiên, thân thiện với môi trường và an toàn cho sức khỏe</li>
+                  <li>Thương hiệu: Handmade Shop</li>
+                  <li>Xuất xứ: Việt Nam</li>
+                  <li>Bảo quản: Nơi khô ráo, tránh ánh nắng trực tiếp</li>
+                </ul>
+              </div>
+            )}
+            
+            {activeTab === 'reviews' && (
+              <div className="reviews-content">
+                <div className="reviews-summary">
+                  <div className="rating-big">
+                    <h2>{product.rating}</h2>
+                    <div className="stars">★★★★★</div>
+                    <p>{product.reviews || 124} đánh giá</p>
+                  </div>
+                  <div className="rating-action">
+                    <p>Bạn đã mua sản phẩm này?</p>
+                    <button className="btn-write-review">Viết đánh giá của bạn</button>
+                  </div>
+                </div>
+                
+                <div className="reviews-list">
+                  {mockReviews.map(review => (
+                    <div key={review.id} className="review-item">
+                      <div className="review-header">
+                        <div className="reviewer-avatar">{review.user.charAt(0)}</div>
+                        <div className="reviewer-info">
+                          <strong>{review.user}</strong>
+                          <div className="stars">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</div>
+                        </div>
+                        <span className="review-date">{review.date}</span>
+                      </div>
+                      <p className="review-text">{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Related Products */}
+        {relatedProducts && relatedProducts.length > 0 && (
+          <div className="related-products-wrapper">
+            <ProductSection 
+              label="Gợi ý cho bạn" 
+              title="Sản phẩm tương tự" 
+              products={relatedProducts} 
+              id="related-products"
+            />
+          </div>
+        )}
       </div>
       <Footer />
     </div>

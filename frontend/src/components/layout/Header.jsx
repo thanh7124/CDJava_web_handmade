@@ -1,7 +1,11 @@
 import { Search, ShoppingBag, Heart, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useOptionalCart } from "../../context/CartContext";
 
 function Header() {
+  const cart = useOptionalCart();
+  const totalItems = cart?.totalItems ?? 0;
+
   return (
     <header className="header">
       <Link to="/" className="logo">
@@ -24,9 +28,35 @@ function Header() {
           <Heart size={20} />
         </button>
 
-        <button type="button" aria-label="Giỏ hàng">
+        <Link
+          to="/cart"
+          className="nav-cart-link"
+          aria-label="Giỏ hàng"
+          style={{ position: 'relative', display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', background: '#f4e4d6', color: '#5b3a29', transition: '0.2s ease', textDecoration: 'none' }}
+        >
           <ShoppingBag size={20} />
-        </button>
+          {totalItems > 0 && (
+            <span
+              style={{
+                position: 'absolute',
+                top: -4,
+                right: -4,
+                width: 20,
+                height: 20,
+                background: '#a75f37',
+                color: 'white',
+                borderRadius: '50%',
+                fontSize: 11,
+                fontWeight: 700,
+                display: 'grid',
+                placeItems: 'center',
+                lineHeight: 1,
+              }}
+            >
+              {totalItems > 9 ? '9+' : totalItems}
+            </span>
+          )}
+        </Link>
 
         <button type="button" aria-label="Tài khoản">
           <User size={20} />
