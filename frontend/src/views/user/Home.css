@@ -26,71 +26,7 @@
   text-decoration: none;
 }
 
-/* ================= HEADER ================= */
-
-.header {
-  width: 100%;
-  height: 76px;
-  padding: 0 var(--page-padding);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 250, 244, 0.94);
-  backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid #f1dfcf;
-}
-
-.logo {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-.logo span,
-.footer span {
-  color: #c57946;
-}
-
-.nav-links {
-  display: flex;
-  gap: clamp(22px, 2vw, 38px);
-  font-size: 15px;
-  color: #5c4a3f;
-}
-
-.nav-links a {
-  transition: 0.2s ease;
-}
-
-.nav-links a:hover {
-  color: var(--primary-color);
-}
-
-.nav-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.nav-actions button {
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 50%;
-  background: #f4e4d6;
-  color: #5b3a29;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: 0.2s ease;
-}
-
-.nav-actions button:hover {
-  background: var(--primary-color);
-  color: white;
-}
+/* Header and Footer styles are now defined globally in index.css */
 
 /* ================= HERO ================= */
 
@@ -644,38 +580,6 @@
   font-weight: 700;
 }
 
-/* ================= FOOTER ================= */
-
-.footer {
-  padding: 52px var(--page-padding);
-  background: #2f241d;
-  color: white;
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 40px;
-}
-
-.footer h2,
-.footer h3 {
-  margin-top: 0;
-}
-
-.footer p {
-  max-width: 460px;
-  color: #d8c7bb;
-  line-height: 1.7;
-}
-
-.footer a {
-  display: block;
-  color: #d8c7bb;
-  margin-bottom: 12px;
-}
-
-.footer a:hover {
-  color: white;
-}
-
 /* ================= RESPONSIVE ================= */
 
 @media (max-width: 1200px) {
@@ -699,14 +603,6 @@
 }
 
 @media (max-width: 900px) {
-  :root {
-    --page-padding: 24px;
-  }
-
-  .nav-links {
-    display: none;
-  }
-
   .hero-section {
     grid-template-columns: 1fr;
     padding-top: 52px;
@@ -736,36 +632,9 @@
   .newsletter-form {
     width: 100%;
   }
-
-  .footer {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 640px) {
-  :root {
-    --page-padding: 20px;
-  }
-
-  .header {
-    height: auto;
-    min-height: 72px;
-    gap: 14px;
-  }
-
-  .logo {
-    font-size: 22px;
-  }
-
-  .nav-actions {
-    gap: 6px;
-  }
-
-  .nav-actions button {
-    width: 36px;
-    height: 36px;
-  }
-
   .hero-section {
     padding-top: 42px;
     gap: 36px;

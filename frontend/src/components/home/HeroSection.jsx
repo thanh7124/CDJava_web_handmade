@@ -1,7 +1,18 @@
 import { Search } from "lucide-react";
 import AppButton from "../common/AppButton";
+import useSearch from "../../hooks/useSearch";
 
 function HeroSection() {
+  const {
+    searchValue,
+    setSearchValue,
+    suggestions,
+    showSuggestions,
+    setShowSuggestions,
+    handleSubmit,
+    handleSuggestionClick,
+  } = useSearch();
+
   return (
     <section className="hero-section">
       <div className="hero-content">
@@ -14,13 +25,43 @@ function HeroSection() {
           tặng hoặc sử dụng hằng ngày.
         </p>
 
-        <div className="hero-search">
+        <div className="hero-search" style={{ position: 'relative' }}>
           <Search size={20} />
-          <input
-            type="text"
-            placeholder="Tìm vòng tay, túi len, nến thơm..."
-          />
-          <button type="button">Tìm kiếm</button>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 12 }}>
+            <input
+              type="text"
+              placeholder="Tìm vòng tay, túi len, nến thơm..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+            />
+            <button type="submit">Tìm kiếm</button>
+          </form>
+
+          {showSuggestions && suggestions.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: '64px',
+              background: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 8px 24px rgba(78, 48, 30, 0.12)',
+              border: '1px solid #ead7c7',
+              zIndex: 800,
+              padding: '8px 0'
+            }}>
+              {suggestions.map((p) => (
+                <div key={p.id} onClick={() => handleSuggestionClick(p.id)} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 12px', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.background = '#fff4e9'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                  <img src={p.image} alt={p.name} style={{ width: 46, height: 46, objectFit: 'cover', borderRadius: 8 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, color: '#2f241d', fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                    <div style={{ fontSize: 12, color: '#a75f37', fontWeight: 700 }}>{p.price.toLocaleString('vi-VN')}₫</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="hero-buttons">
