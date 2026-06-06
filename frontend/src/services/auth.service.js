@@ -1,9 +1,33 @@
 const USER_STORAGE_KEY = "handmade_users";
 const CURRENT_USER_KEY = "handmade_current_user";
 
+const DEFAULT_USER = {
+  id: 1,
+  fullName: "Người dùng mẫu",
+  email: "demo@handmade.com",
+  password: "Demo@123",
+  role: "USER",
+  createdAt: new Date().toISOString(),
+};
+
 function getStoredUsers() {
-  const users = localStorage.getItem(USER_STORAGE_KEY);
-  return users ? JSON.parse(users) : [];
+  const raw = localStorage.getItem(USER_STORAGE_KEY);
+  if (!raw) {
+    saveUsers([DEFAULT_USER]);
+    return [DEFAULT_USER];
+  }
+
+  try {
+    const users = JSON.parse(raw);
+    if (!Array.isArray(users) || users.length === 0) {
+      saveUsers([DEFAULT_USER]);
+      return [DEFAULT_USER];
+    }
+    return users;
+  } catch (e) {
+    saveUsers([DEFAULT_USER]);
+    return [DEFAULT_USER];
+  }
 }
 
 function saveUsers(users) {
@@ -43,6 +67,7 @@ export function registerUser({ fullName, email, password }) {
     fullName: newUser.fullName,
     email: newUser.email,
     role: newUser.role,
+    createdAt: newUser.createdAt,
   };
 
   localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
@@ -68,11 +93,51 @@ export function loginUser({ email, password }) {
     fullName: user.fullName,
     email: user.email,
     role: user.role,
+    createdAt: user.createdAt,
   };
 
   localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
 
   return currentUser;
+}
+
+export function updateUser({ id, fullName, email }) {
+  const users = getStoredUsers();
+  const userIndex = users.findIndex((item) => item.id === Number(id));
+
+  if (userIndex === -1) {
+    throw new Error("Người dùng không tồn tại");
+  }
+
+  const normalizedEmail = email.toLowerCase();
+  const emailTaken = users.some(
+    (item) =>
+      item.email.toLowerCase() === normalizedEmail && item.id !== Number(id)
+  );
+
+  if (emailTaken) {
+    throw new Error("Email này đã được sử dụng bởi tài khoản khác");
+  }
+
+  users[userIndex] = {
+    ...users[userIndex],
+    fullName: fullName.trim(),
+    email: normalizedEmail,
+  };
+
+  saveUsers(users);
+
+  const updatedCurrentUser = {
+    id: users[userIndex].id,
+    fullName: users[userIndex].fullName,
+    email: users[userIndex].email,
+    role: users[userIndex].role,
+    createdAt: users[userIndex].createdAt,
+  };
+
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedCurrentUser));
+
+  return updatedCurrentUser;
 }
 
 export function logoutUser() {

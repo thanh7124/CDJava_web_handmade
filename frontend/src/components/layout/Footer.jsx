@@ -14,9 +14,9 @@ function Footer() {
 
       <div>
         <h3>Liên kết</h3>
-        <a href="#products">Sản phẩm</a>
-        <a href="#categories">Danh mục</a>
-        <a href="#about">Về chúng tôi</a>
+        <a href="/products">Sản phẩm</a>
+        <a href="/categories">Danh mục</a>
+        <a href="/about">Về chúng tôi</a>
       </div>
 
       <div>

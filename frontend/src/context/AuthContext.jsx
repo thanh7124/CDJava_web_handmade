@@ -4,6 +4,7 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  updateUser,
 } from "../services/auth.service";
 
 const AuthContext = createContext(null);
@@ -28,12 +29,19 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const updateUserProfile = (userData) => {
+    const updatedUser = updateUser(userData);
+    setUser(updatedUser);
+    return updatedUser;
+  };
+
   const value = {
     user,
     isAuthenticated: Boolean(user),
     login,
     register,
     logout,
+    updateUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

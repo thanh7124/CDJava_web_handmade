@@ -10,6 +10,8 @@ import Cart from "./views/user/Cart";
 import Login from "./views/user/Login";
 import Register from "./views/user/Register";
 import Checkout from "./views/user/Checkout";
+import About from "./views/user/About";
+import Profile from "./views/user/Profile";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Routes>
