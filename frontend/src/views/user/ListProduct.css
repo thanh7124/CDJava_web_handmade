@@ -2,6 +2,8 @@
   padding: 34px var(--page-padding) 0;
 }
 
+/* ================= HERO ================= */
+
 .list-product-hero {
   padding: clamp(42px, 5vw, 76px);
   border-radius: 34px;
@@ -12,6 +14,7 @@
 
 .list-product-hero p {
   margin: 0 0 10px;
+  font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -33,6 +36,8 @@
   opacity: 0.92;
 }
 
+/* ================= FILTER ================= */
+
 .product-filter-section {
   margin-top: 28px;
   padding: 22px;
@@ -48,6 +53,7 @@
 .filter-search {
   height: 52px;
   flex: 1;
+  min-width: 260px;
   padding: 0 18px;
   display: flex;
   align-items: center;
@@ -90,11 +96,13 @@
 }
 
 .filter-select select {
+  min-width: 130px;
   border: none;
   outline: none;
   background: transparent;
   color: var(--text-color);
   font-weight: 700;
+  cursor: pointer;
 }
 
 .reset-filter-btn {
@@ -105,6 +113,7 @@
   background: var(--primary-color);
   color: white;
   font-weight: 800;
+  cursor: pointer;
   transition: 0.2s ease;
 }
 
@@ -112,6 +121,8 @@
   background: var(--primary-dark);
   transform: translateY(-2px);
 }
+
+/* ================= CONTENT ================= */
 
 .list-product-content {
   padding-top: 58px;
@@ -121,17 +132,17 @@
   margin-bottom: 28px;
   display: flex;
   justify-content: space-between;
-  align-items: end;
+  align-items: flex-end;
   gap: 20px;
 }
 
 .list-product-top p {
   margin: 0 0 8px;
   color: var(--primary-color);
+  font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-size: 13px;
 }
 
 .list-product-top h2 {
@@ -147,6 +158,8 @@
 .list-product-top strong {
   color: var(--primary-color);
 }
+
+/* ================= EMPTY ================= */
 
 .empty-product {
   padding: 70px 24px;
@@ -174,12 +187,80 @@
   background: var(--primary-color);
   color: white;
   font-weight: 800;
+  cursor: pointer;
 }
+
+/* ================= PAGINATION ================= */
+
+.pagination {
+  margin: 46px 0 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn,
+.pagination-page {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background: white;
+  color: var(--text-color);
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(78, 48, 30, 0.08);
+  transition: 0.2s ease;
+}
+
+.pagination-btn {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.pagination-page {
+  font-size: 15px;
+}
+
+.pagination-btn:hover:not(:disabled),
+.pagination-page:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.pagination-page.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  box-shadow: 0 12px 28px rgba(167, 95, 55, 0.28);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ================= RESPONSIVE ================= */
 
 @media (max-width: 980px) {
   .product-filter-section {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .filter-search {
+    min-width: 100%;
   }
 
   .filter-controls {
@@ -220,56 +301,10 @@
     flex-direction: column;
     align-items: flex-start;
   }
-}
-.pagination {
-  margin-top: 42px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 14px;
-}
 
-.pagination-pages {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pagination-btn,
-.pagination-page {
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--border-color);
-  border-radius: 50%;
-  background: white;
-  color: var(--text-color);
-  font-weight: 800;
-  display: grid;
-  place-items: center;
-  transition: 0.2s ease;
-}
-
-.pagination-btn:hover:not(:disabled),
-.pagination-page:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  transform: translateY(-2px);
-}
-
-.pagination-page.active {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-
-.pagination-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-@media (max-width: 640px) {
   .pagination {
     gap: 10px;
+    margin-top: 36px;
   }
 
   .pagination-pages {
@@ -280,5 +315,9 @@
   .pagination-page {
     width: 38px;
     height: 38px;
+  }
+
+  .pagination-btn {
+    font-size: 24px;
   }
 }
