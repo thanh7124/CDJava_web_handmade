@@ -1,223 +1,205 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  Search,
-  SlidersHorizontal,
-} from "lucide-react";
-
+import { useEffect, useState } from "react";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import ProductCard from "../../components/product/ProductCard";
-
+import "./ListProduct.css";
 import {
-  filterProducts,
-  getAllProducts,
-  getProductCategories,
+  fetchProductPage,
+  fetchCategories,
 } from "../../services/product.service";
 
-import "./Home.css";
-import "./ListProduct.css";
-
 function ListProduct() {
-  const [keyword, setKeyword] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
-  const [sort, setSort] = useState("default");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  const productsPerPage = 8;
+  const [search, setSearch] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [sort, setSort] = useState("newest");
 
-  const categories = getProductCategories();
-  const totalProducts = getAllProducts().length;
+  const [page, setPage] = useState(1);
+  const [limit] = useState(8);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const filteredProducts = useMemo(() => {
-    return filterProducts({
-      keyword,
-      category: selectedCategory,
-      sort,
-    });
-  }, [keyword, selectedCategory, sort]);
+  const [loading, setLoading] = useState(false);
 
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  async function loadProducts() {
+    try {
+      setLoading(true);
 
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const endIndex = startIndex + productsPerPage;
+      const result = await fetchProductPage({
+        search,
+        categoryId,
+        sort,
+        page,
+        limit,
+      });
 
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+      setProducts(result.data || []);
+      setTotalPages(result.totalPages || 1);
+    } catch (error) {
+      console.error("Lỗi tải sản phẩm:", error);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadCategories() {
+    try {
+      const data = await fetchCategories();
+      setCategories(data || []);
+    } catch (error) {
+      console.error("Lỗi tải danh mục:", error);
+    }
+  }
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [keyword, selectedCategory, sort]);
+    loadCategories();
+  }, []);
 
-  const resetFilter = () => {
-    setKeyword("");
-    setSelectedCategory("Tất cả");
-    setSort("default");
-    setCurrentPage(1);
-  };
-
-  const goToPage = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      goToPage(currentPage - 1);
-    }
-  };
-
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      goToPage(currentPage + 1);
-    }
-  };
+  useEffect(() => {
+    loadProducts();
+  }, [search, categoryId, sort, page]);
 
   return (
     <div className="home-page">
       <Header />
 
-      <main className="list-product-page">
-        <section className="list-product-hero">
-          <div>
-            <p>Sản phẩm handmade</p>
-            <h1>Khám phá tất cả sản phẩm thủ công</h1>
-            <span>
-              Tìm kiếm những món đồ handmade độc đáo, phù hợp để sử dụng hằng
-              ngày, trang trí hoặc làm quà tặng.
-            </span>
+      <main className="product-page">
+        <section className="product-section">
+          <div className="product-section-top">
+            <div className="section-heading">
+              <p>Sản phẩm</p>
+              <h2>Danh sách sản phẩm handmade</h2>
+            </div>
           </div>
-        </section>
 
-        <section className="product-filter-section">
-          <div className="filter-search">
-            <Search size={20} />
+          <div
+            style={{
+              marginTop: 24,
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
             <input
-              type="text"
-              placeholder="Tìm sản phẩm theo tên hoặc danh mục..."
-              value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Tìm sản phẩm..."
+              style={{
+                height: 42,
+                minWidth: 260,
+                borderRadius: 999,
+                border: "1px solid #ead7c7",
+                padding: "0 16px",
+              }}
             />
-          </div>
 
-          <div className="filter-controls">
-            <div className="filter-select">
-              <Filter size={18} />
-              <select
-                value={selectedCategory}
-                onChange={(event) => setSelectedCategory(event.target.value)}
-              >
-                {categories.map((category) => (
-                  <option value={category} key={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-select">
-              <SlidersHorizontal size={18} />
-              <select
-                value={sort}
-                onChange={(event) => setSort(event.target.value)}
-              >
-                <option value="default">Mặc định</option>
-                <option value="newest">Mới nhất</option>
-                <option value="best-seller">Bán chạy</option>
-                <option value="rating">Đánh giá cao</option>
-                <option value="price-asc">Giá tăng dần</option>
-                <option value="price-desc">Giá giảm dần</option>
-              </select>
-            </div>
-
-            <button
-              type="button"
-              className="reset-filter-btn"
-              onClick={resetFilter}
+            <select
+              value={categoryId}
+              onChange={(event) => {
+                setCategoryId(event.target.value);
+                setPage(1);
+              }}
+              style={{
+                height: 42,
+                borderRadius: 999,
+                border: "1px solid #ead7c7",
+                padding: "0 16px",
+              }}
             >
-              Xóa lọc
-            </button>
+              <option value="">Tất cả danh mục</option>
+
+              {categories.map((category) => (
+                <option value={category.id} key={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value);
+                setPage(1);
+              }}
+              style={{
+                height: 42,
+                borderRadius: 999,
+                border: "1px solid #ead7c7",
+                padding: "0 16px",
+              }}
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="price-asc">Giá tăng dần</option>
+              <option value="price-desc">Giá giảm dần</option>
+              <option value="best-seller">Bán chạy</option>
+              <option value="rating">Đánh giá cao</option>
+            </select>
           </div>
-        </section>
 
-        <section className="list-product-content">
-          <div className="list-product-top">
-            <div>
-              <p>Tìm thấy</p>
-              <h2>
-                {filteredProducts.length} / {totalProducts} sản phẩm
-              </h2>
-            </div>
-
-            <span>
-              Trang {totalPages === 0 ? 0 : currentPage} / {totalPages}
-            </span>
-          </div>
-
-          {currentProducts.length > 0 ? (
-            <>
-              <div className="product-grid">
-                {currentProducts.map((product) => (
-                  <ProductCard product={product} key={product.id} />
-                ))}
-              </div>
-
-              {totalPages > 1 && (
-                <div className="pagination">
-                  <button
-                    type="button"
-                    className="pagination-btn"
-                    onClick={goToPreviousPage}
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-
-                  <div className="pagination-pages">
-                    {Array.from({ length: totalPages }, (_, index) => {
-                      const page = index + 1;
-
-                      return (
-                        <button
-                          type="button"
-                          key={page}
-                          className={
-                            currentPage === page
-                              ? "pagination-page active"
-                              : "pagination-page"
-                          }
-                          onClick={() => goToPage(page)}
-                        >
-                          {page}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <button
-                    type="button"
-                    className="pagination-btn"
-                    onClick={goToNextPage}
-                    disabled={currentPage === totalPages}
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-              )}
-            </>
+          {loading ? (
+            <p style={{ marginTop: 32 }}>Đang tải sản phẩm...</p>
           ) : (
-            <div className="empty-product">
-              <h3>Không tìm thấy sản phẩm phù hợp</h3>
-              <p>Hãy thử tìm kiếm bằng từ khóa khác hoặc chọn lại danh mục.</p>
-              <button type="button" onClick={resetFilter}>
-                Xem tất cả sản phẩm
-              </button>
+            <div className="product-grid">
+              {products.map((product) => (
+                <ProductCard
+                  product={{
+                    ...product,
+                    category: product.categoryName,
+                  }}
+                  key={product.id}
+                />
+              ))}
             </div>
           )}
+
+          {!loading && products.length === 0 && (
+            <p style={{ marginTop: 32 }}>Chưa có sản phẩm nào.</p>
+          )}
+
+          {totalPages > 1 && (
+  <div className="pagination">
+    <button
+      type="button"
+      className="pagination-btn"
+      disabled={page <= 1}
+      onClick={() => setPage(page - 1)}
+    >
+      ‹
+    </button>
+
+    <div className="pagination-pages">
+      {Array.from({ length: totalPages }, (_, index) => {
+        const pageNumber = index + 1;
+
+        return (
+          <button
+            type="button"
+            key={pageNumber}
+            className={`pagination-page ${page === pageNumber ? "active" : ""}`}
+            onClick={() => setPage(pageNumber)}
+          >
+            {pageNumber}
+          </button>
+        );
+      })}
+    </div>
+
+    <button
+      type="button"
+      className="pagination-btn"
+      disabled={page >= totalPages}
+      onClick={() => setPage(page + 1)}
+    >
+      ›
+    </button>
+  </div>
+)}
         </section>
       </main>
 

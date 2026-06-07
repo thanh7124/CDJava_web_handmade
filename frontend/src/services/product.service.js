@@ -1,4 +1,5 @@
 import { products } from "../data/products";
+import axios from "axios";
 
 export function getAllProducts() {
   return products;
@@ -84,4 +85,61 @@ export function formatCurrency(value) {
     style: "currency",
     currency: "VND",
   }).format(value);
+}
+
+
+
+
+
+const API_URL = "http://localhost:8080/api";
+
+export async function fetchProductPage({
+  search = "",
+  categoryId = "",
+  sort = "newest",
+  page = 1,
+  limit = 8,
+} = {}) {
+  const params = new URLSearchParams();
+
+  if (search) params.append("search", search);
+  if (categoryId) params.append("categoryId", categoryId);
+
+  params.append("sort", sort);
+  params.append("page", page);
+  params.append("limit", limit);
+
+  const response = await fetch(`${API_URL}/products?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error("Không thể tải danh sách sản phẩm");
+  }
+
+  const data = await response.json();
+
+  return data.result;
+}
+
+export async function fetchProductById(id) {
+  const response = await fetch(`${API_URL}/products/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Không thể tải chi tiết sản phẩm");
+  }
+
+  const data = await response.json();
+
+  return data.result;
+}
+
+export async function fetchCategories() {
+  const response = await fetch(`${API_URL}/categories`);
+
+  if (!response.ok) {
+    throw new Error("Không thể tải danh mục");
+  }
+
+  const data = await response.json();
+
+  return data.result.data;
 }
