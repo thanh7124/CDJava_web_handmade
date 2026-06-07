@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import ProductCard from "../../components/product/ProductCard";
@@ -21,6 +22,8 @@ function ListProduct() {
   const [totalPages, setTotalPages] = useState(1);
 
   const [loading, setLoading] = useState(false);
+
+  const [searchParams] = useSearchParams();
 
   async function loadProducts() {
     try {
@@ -53,9 +56,18 @@ function ListProduct() {
     }
   }
 
-  useEffect(() => {
+    useEffect(() => {
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    const categoryIdFromUrl = searchParams.get("categoryId") || "";
+    const searchFromUrl = searchParams.get("search") || "";
+
+    setCategoryId(categoryIdFromUrl);
+    setSearch(searchFromUrl);
+    setPage(1);
+  }, [searchParams]);
 
   useEffect(() => {
     loadProducts();

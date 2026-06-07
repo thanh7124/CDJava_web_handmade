@@ -1,35 +1,60 @@
 package com.handmade.controller;
 
-import org.springframework.http.ResponseEntity;
+import com.handmade.dto.ApiResponse;
+import com.handmade.dto.CartItemRequest;
+import com.handmade.dto.CartResponse;
+import com.handmade.service.CartService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
 
-    // TODO: Inject CartService
+    private final CartService cartService;
+
+    public CartController(CartService cartService) {
+        this.cartService = cartService;
+    }
 
     @GetMapping
-    public ResponseEntity<?> getCartItems() {
-        // TODO: Return cart items for current user
-        return ResponseEntity.ok().build();
+    public ApiResponse<CartResponse> getCart() {
+        return ApiResponse.ok(
+                "Lấy giỏ hàng thành công",
+                cartService.getCart()
+        );
     }
 
-    @PostMapping
-    public ResponseEntity<?> addToCart(@RequestBody Object request) {
-        // TODO: Add item to cart
-        return ResponseEntity.ok().build();
+    @PostMapping("/items")
+    public ApiResponse<CartResponse> addItem(@RequestBody CartItemRequest request) {
+        return ApiResponse.ok(
+                "Thêm sản phẩm vào giỏ hàng thành công",
+                cartService.addItem(request)
+        );
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateCartItem(@PathVariable Long id, @RequestBody Object request) {
-        // TODO: Update cart item quantity
-        return ResponseEntity.ok().build();
+    @PutMapping("/items/{productId}")
+    public ApiResponse<CartResponse> updateItem(
+            @PathVariable Long productId,
+            @RequestBody CartItemRequest request
+    ) {
+        return ApiResponse.ok(
+                "Cập nhật giỏ hàng thành công",
+                cartService.updateItem(productId, request)
+        );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> removeFromCart(@PathVariable Long id) {
-        // TODO: Remove item from cart
-        return ResponseEntity.ok().build();
+    @DeleteMapping("/items/{productId}")
+    public ApiResponse<CartResponse> removeItem(@PathVariable Long productId) {
+        return ApiResponse.ok(
+                "Xóa sản phẩm khỏi giỏ hàng thành công",
+                cartService.removeItem(productId)
+        );
+    }
+
+    @DeleteMapping("/clear")
+    public ApiResponse<Void> clearCart() {
+        cartService.clearCart();
+
+        return ApiResponse.ok("Xóa toàn bộ giỏ hàng thành công", null);
     }
 }
