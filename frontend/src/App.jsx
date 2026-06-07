@@ -12,6 +12,11 @@ import Register from "./views/user/Register";
 import Checkout from "./views/user/Checkout";
 import About from "./views/user/About";
 import Profile from "./views/user/Profile";
+import Dashboard from "./views/admin/dashboard";
+import ManageProducts from "./views/admin/ManageProducts";
+import ManageOrders from "./views/admin/ManageOrders";
+import ManageUsers from "./views/admin/ManageUsers";
+import ManageCategories from "./views/admin/ManageCategories";
 
 function App() {
   return (
@@ -28,6 +33,11 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/manage-products" element={<ManageProducts />} />
+            <Route path="/manage-orders" element={<ManageOrders />} />
+            <Route path="/manage-users" element={<ManageUsers />} />
+            <Route path="/manage-categories" element={<ManageCategories />} />
           </Routes>
         </CartProvider>
       </AuthProvider>

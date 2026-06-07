@@ -140,6 +140,27 @@ export function updateUser({ id, fullName, email }) {
   return updatedCurrentUser;
 }
 
+export function updateUserPassword({ id, currentPassword, newPassword }) {
+  const users = getStoredUsers();
+  const userIndex = users.findIndex((item) => item.id === Number(id));
+
+  if (userIndex === -1) {
+    throw new Error("Người dùng không tồn tại");
+  }
+
+  if (users[userIndex].password !== currentPassword) {
+    throw new Error("Mật khẩu hiện tại không đúng");
+  }
+
+  users[userIndex] = {
+    ...users[userIndex],
+    password: newPassword,
+  };
+
+  saveUsers(users);
+  return true;
+}
+
 export function logoutUser() {
   localStorage.removeItem(CURRENT_USER_KEY);
 }
