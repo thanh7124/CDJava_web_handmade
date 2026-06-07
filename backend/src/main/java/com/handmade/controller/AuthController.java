@@ -1,28 +1,35 @@
 package com.handmade.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import com.handmade.dto.ApiResponse;
+import com.handmade.dto.AuthResponse;
+import com.handmade.dto.LoginRequest;
+import com.handmade.dto.RegisterRequest;
+import com.handmade.service.AuthService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class AuthController {
 
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Object request) {
-        // Register logic here
-        return ResponseEntity.ok("User registered successfully");
+    public ApiResponse<AuthResponse> register(@RequestBody RegisterRequest request) {
+        return ApiResponse.ok(
+                "Đăng ký tài khoản thành công",
+                authService.register(request)
+        );
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Object request) {
-        // Login logic here
-        return ResponseEntity.ok("Login successful");
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
-        return ResponseEntity.ok("Logout successful");
+    public ApiResponse<AuthResponse> login(@RequestBody LoginRequest request) {
+        return ApiResponse.ok(
+                "Đăng nhập thành công",
+                authService.login(request)
+        );
     }
 }
