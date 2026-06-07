@@ -1,28 +1,39 @@
 package com.handmade.service;
 
 import com.handmade.dto.PageResponse;
+import com.handmade.dto.ProductRequest;
 import com.handmade.dto.ProductResponse;
+import com.handmade.entity.Category;
 import com.handmade.entity.Product;
+import com.handmade.repository.CategoryRepository;
 import com.handmade.repository.ProductRepository;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class ProductService {
-    private final ProductRepository productRepository;
 
-    public ProductService(ProductRepository productRepository) {
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+
+    public ProductService(
+            ProductRepository productRepository,
+            CategoryRepository categoryRepository
+    ) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     public PageResponse<ProductResponse> getProducts(
             String search,
-            String category,
+            Long categoryId,
             String sort,
             int page,
             int limit
@@ -30,10 +41,13 @@ public class ProductService {
         int safePage = Math.max(page, 1);
         int safeLimit = Math.max(limit, 1);
 
-        Sort springSort = buildSort(sort);
-        Pageable pageable = PageRequest.of(safePage - 1, safeLimit, springSort);
+        Pageable pageable = PageRequest.of(
+                safePage - 1,
+                safeLimit,
+                buildSort(sort)
+        );
 
-        Specification<Product> specification = buildSpecification(search, category);
+        Specification<Product> specification = buildSpecification(search, categoryId);
 
         Page<Product> productPage = productRepository.findAll(specification, pageable);
 
@@ -53,42 +67,108 @@ public class ProductService {
     }
 
     public ProductResponse getProductById(Long id) {
-        Product product = productRepository
-                .findById(id)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
         return ProductResponse.from(product);
     }
 
-    private Specification<Product> buildSpecification(String search, String category) {
+    public ProductResponse createProduct(ProductRequest request) {
+        validateProductRequest(request);
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
+
+        Product product = new Product();
+
+        applyProductData(product, request, category);
+
+        Product savedProduct = productRepository.save(product);
+
+        return ProductResponse.from(savedProduct);
+    }
+
+    public ProductResponse updateProduct(Long id, ProductRequest request) {
+        validateProductRequest(request);
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
+
+        applyProductData(product, request, category);
+
+        Product updatedProduct = productRepository.save(product);
+
+        return ProductResponse.from(updatedProduct);
+    }
+
+    public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new RuntimeException("Không tìm thấy sản phẩm");
+        }
+
+        productRepository.deleteById(id);
+    }
+
+    private void applyProductData(
+            Product product,
+            ProductRequest request,
+            Category category
+    ) {
+        product.setName(request.getName().trim());
+
+        String slug = request.getSlug();
+        if (slug == null || slug.trim().isEmpty()) {
+            slug = generateSlug(request.getName());
+        }
+
+        product.setSlug(slug);
+        product.setPrice(request.getPrice());
+        product.setOldPrice(request.getOldPrice());
+        product.setRating(request.getRating() != null ? request.getRating() : 0.0);
+        product.setSold(request.getSold() != null ? request.getSold() : 0);
+        product.setStock(request.getStock() != null ? request.getStock() : 0);
+        product.setBadge(request.getBadge());
+        product.setImage(request.getImage());
+        product.setImages(request.getImages() != null ? request.getImages() : new ArrayList<>());
+        product.setDescription(request.getDescription());
+        product.setCategory(category);
+    }
+
+    private void validateProductRequest(ProductRequest request) {
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            throw new RuntimeException("Tên sản phẩm không được để trống");
+        }
+
+        if (request.getPrice() == null) {
+            throw new RuntimeException("Giá sản phẩm không được để trống");
+        }
+
+        if (request.getCategoryId() == null) {
+            throw new RuntimeException("Danh mục sản phẩm không được để trống");
+        }
+    }
+
+    private Specification<Product> buildSpecification(String search, Long categoryId) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (search != null && !search.trim().isEmpty()) {
                 String keyword = "%" + search.trim().toLowerCase() + "%";
 
-                Predicate namePredicate = criteriaBuilder.like(
+                predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("name")),
                         keyword
-                );
-
-                Predicate categoryPredicate = criteriaBuilder.like(
-                        criteriaBuilder.lower(root.join("category").get("name")),
-                        keyword
-                );
-
-                predicates.add(criteriaBuilder.or(namePredicate, categoryPredicate));
+                ));
             }
 
-            if (category != null
-                    && !category.trim().isEmpty()
-                    && !"Tất cả".equalsIgnoreCase(category.trim())) {
-                predicates.add(
-                        criteriaBuilder.equal(
-                                root.join("category").get("name"),
-                                category.trim()
-                        )
-                );
+            if (categoryId != null) {
+                predicates.add(criteriaBuilder.equal(
+                        root.get("category").get("id"),
+                        categoryId
+                ));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
@@ -96,7 +176,7 @@ public class ProductService {
     }
 
     private Sort buildSort(String sort) {
-        if (sort == null) {
+        if (sort == null || sort.trim().isEmpty()) {
             return Sort.by(Sort.Direction.DESC, "id");
         }
 
@@ -108,5 +188,17 @@ public class ProductService {
             case "newest" -> Sort.by(Sort.Direction.DESC, "id");
             default -> Sort.by(Sort.Direction.DESC, "id");
         };
+    }
+
+    private String generateSlug(String value) {
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+
+        return normalized
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
     }
 }

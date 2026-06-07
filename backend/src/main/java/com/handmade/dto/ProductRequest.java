@@ -1,12 +1,9 @@
 package com.handmade.dto;
 
-import com.handmade.entity.Product;
-
 import java.math.BigDecimal;
 import java.util.List;
 
-public class ProductResponse {
-    private Long id;
+public class ProductRequest {
     private String name;
     private String slug;
     private BigDecimal price;
@@ -19,35 +16,6 @@ public class ProductResponse {
     private List<String> images;
     private String description;
     private Long categoryId;
-    private String categoryName;
-
-    public static ProductResponse from(Product product) {
-        ProductResponse response = new ProductResponse();
-
-        response.setId(product.getId());
-        response.setName(product.getName());
-        response.setSlug(product.getSlug());
-        response.setPrice(product.getPrice());
-        response.setOldPrice(product.getOldPrice());
-        response.setRating(product.getRating());
-        response.setSold(product.getSold());
-        response.setStock(product.getStock());
-        response.setBadge(product.getBadge());
-        response.setImage(product.getImage());
-        response.setImages(product.getImages());
-        response.setDescription(product.getDescription());
-
-        if (product.getCategory() != null) {
-            response.setCategoryId(product.getCategory().getId());
-            response.setCategoryName(product.getCategory().getName());
-        }
-
-        return response;
-    }
-
-    public Long getId() {
-        return id;
-    }
 
     public String getName() {
         return name;
@@ -97,14 +65,6 @@ public class ProductResponse {
         return categoryId;
     }
 
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public void setName(String name) {
         this.name = name;
     }
@@ -151,9 +111,5 @@ public class ProductResponse {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
     }
 }
