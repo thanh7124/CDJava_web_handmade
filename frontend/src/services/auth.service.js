@@ -99,6 +99,15 @@ export function updateUser({ id, fullName, email, phone }) {
   return updatedUser;
 }
 
-export function updateUserPassword() {
-  throw new Error("Chức năng đổi mật khẩu chưa được kết nối API");
+export async function changePasswordApi(token, payload) {
+  const response = await fetch(`${API_URL}/auth/change-password`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response);
 }

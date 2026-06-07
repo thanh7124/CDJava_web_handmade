@@ -1,21 +1,16 @@
 import { Star, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "../../services/product.service";
-import { useEffect, useState } from "react";
-import { isFavorite, toggleFavorite } from "../../services/favorite.service";
+import { useFavorite } from "../../context/FavoriteContext";
 
 function ProductCard({ product }) {
-  const [fav, setFav] = useState(false);
-
-  useEffect(() => {
-    setFav(isFavorite(product.id));
-  }, [product.id]);
+  const { isFavorite, toggleFavorite } = useFavorite();
+  const fav = isFavorite(product.id);
 
   const onToggleFav = (e) => {
     e.preventDefault();
     e.stopPropagation();
     toggleFavorite(product.id);
-    setFav((s) => !s);
   };
 
   return (

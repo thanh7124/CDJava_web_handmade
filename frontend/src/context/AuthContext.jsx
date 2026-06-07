@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { loginApi, registerApi } from "../services/auth.service";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { loginApi, registerApi, updateUser } from "../services/auth.service";
 
 const AuthContext = createContext(null);
 
@@ -69,6 +69,11 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
+  const updateUserProfile = useCallback((updatedFields) => {
+    const updated = updateUser(updatedFields);
+    setUser(updated);
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -78,8 +83,9 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      updateUserProfile,
     }),
-    [user, loading]
+    [user, loading, updateUserProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

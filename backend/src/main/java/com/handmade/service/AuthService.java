@@ -72,6 +72,22 @@ public class AuthService {
         return new AuthResponse(token, UserResponse.from(user));
     }
 
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Mật khẩu hiện tại không đúng");
+        }
+
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new RuntimeException("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
     private void validateRegisterRequest(RegisterRequest request) {
         if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
             throw new RuntimeException("Họ tên không được để trống");

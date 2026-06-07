@@ -6,12 +6,15 @@ import './Home.css';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
 import { useCart } from "../../context/CartContext";
+import { useFavorite } from "../../context/FavoriteContext";
 import ProductSection from '../../components/home/ProductSection';
+import { Heart } from "lucide-react";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorite();
   const [cartMessage, setCartMessage] = useState("");
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -137,6 +140,7 @@ export default function ProductDetail() {
   const rating = product.rating || 0;
   const sold = product.sold || 0;
   const stock = product.stock || 0;
+  const fav = isFavorite(product.id);
 
   return (
     <div className="home-page">
@@ -245,6 +249,15 @@ export default function ProductDetail() {
 
                 <button type="button" className="btn-buy-now">
                   Mua ngay  
+                </button>
+                
+                <button 
+                  type="button" 
+                  className={`btn-favorite ${fav ? 'active' : ''}`}
+                  onClick={() => toggleFavorite(product.id)}
+                  title={fav ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
+                >
+                  <Heart size={24} fill={fav ? "currentColor" : "none"} />
                 </button>
               </div>
               {cartMessage && <p className="cart-message">{cartMessage}</p>}

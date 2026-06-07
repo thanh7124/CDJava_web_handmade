@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { FavoriteProvider } from "./context/FavoriteContext";
 
 import Home from "./views/user/Home";
 import ListProduct from "./views/user/ListProduct";
@@ -23,22 +24,24 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<ListProduct />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/manage-products" element={<ManageProducts />} />
-            <Route path="/manage-orders" element={<ManageOrders />} />
-            <Route path="/manage-users" element={<ManageUsers />} />
-            <Route path="/manage-categories" element={<ManageCategories />} />
-          </Routes>
+          <FavoriteProvider>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/products" element={<ListProduct />} />
+              <Route path="/products/:id" element={<ProductDetail />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/manage-products" element={<ManageProducts />} />
+              <Route path="/manage-orders" element={<ManageOrders />} />
+              <Route path="/manage-users" element={<ManageUsers />} />
+              <Route path="/manage-categories" element={<ManageCategories />} />
+            </Routes>
+          </FavoriteProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

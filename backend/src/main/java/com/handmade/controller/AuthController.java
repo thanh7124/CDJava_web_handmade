@@ -32,4 +32,21 @@ public class AuthController {
                 authService.login(request)
         );
     }
+
+    @PutMapping("/change-password")
+    public ApiResponse<Void> changePassword(
+            java.security.Principal principal,
+            @RequestBody java.util.Map<String, String> request
+    ) {
+        if (principal == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+        
+        String oldPassword = request.get("oldPassword");
+        String newPassword = request.get("newPassword");
+        
+        authService.changePassword(principal.getName(), oldPassword, newPassword);
+        
+        return ApiResponse.ok("Đổi mật khẩu thành công", null);
+    }
 }

@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useFavorite } from "../../context/FavoriteContext";
+import { useCart } from "../../context/CartContext";
+import { fetchProductById, formatCurrency } from "../../services/product.service";
+import { orderService } from "../../services/order.service";
+import { changePasswordApi } from "../../services/auth.service";
+import ProductCard from "../../components/product/ProductCard";
 
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
@@ -9,6 +15,8 @@ import "./Profile.css";
 
 function Profile() {
   const { user, logout, updateUserProfile } = useAuth();
+  const { favoriteIds } = useFavorite();
+  const { cartItems, cartTotal } = useCart();
   const navigate = useNavigate();
   
   // State quản lý Tab đang hoạt động
@@ -24,6 +32,21 @@ function Profile() {
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState("success");
 
+  // State cho wishlist
+  const [favProducts, setFavProducts] = useState([]);
+  const [loadingFavs, setLoadingFavs] = useState(false);
+
+  // State cho orders
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
+  // State cho password
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwdMessage, setPwdMessage] = useState(null);
+  const [pwdMessageType, setPwdMessageType] = useState("success");
+
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -36,6 +59,42 @@ function Profile() {
       setEmail(user.email);
     }
   }, [user]);
+
+  useEffect(() => {
+    async function loadFavorites() {
+      if (activeTab === "wishlist") {
+        setLoadingFavs(true);
+        try {
+          const products = await Promise.all(
+            favoriteIds.map(id => fetchProductById(id).catch(() => null))
+          );
+          setFavProducts(products.filter(p => p !== null));
+        } catch (error) {
+          console.error("Lỗi tải yêu thích:", error);
+        } finally {
+          setLoadingFavs(false);
+        }
+      }
+    }
+    loadFavorites();
+  }, [activeTab, favoriteIds]);
+
+  useEffect(() => {
+    async function loadOrders() {
+      if (activeTab === "orders" && user?.token) {
+        setLoadingOrders(true);
+        try {
+          const data = await orderService.fetchMyOrders(user.token);
+          setOrders(data || []);
+        } catch (error) {
+          console.error("Lỗi tải đơn hàng:", error);
+        } finally {
+          setLoadingOrders(false);
+        }
+      }
+    }
+    loadOrders();
+  }, [activeTab, user]);
 
   const handleSave = (event) => {
     event.preventDefault();
@@ -53,6 +112,29 @@ function Profile() {
     } catch (error) {
       setMessage(error.message || "Không thể cập nhật thông tin.");
       setMessageType("error");
+    }
+  };
+
+  const handlePasswordChange = async (event) => {
+    event.preventDefault();
+    setPwdMessage(null);
+
+    if (newPassword !== confirmPassword) {
+      setPwdMessage("Mật khẩu mới và xác nhận không khớp.");
+      setPwdMessageType("error");
+      return;
+    }
+
+    try {
+      await changePasswordApi(user.token, { oldPassword, newPassword });
+      setPwdMessage("Đổi mật khẩu thành công.");
+      setPwdMessageType("success");
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      setPwdMessage(error.message || "Đổi mật khẩu thất bại.");
+      setPwdMessageType("error");
     }
   };
 
@@ -151,6 +233,10 @@ function Profile() {
           cancelled: "Bạn chưa có đơn hàng đã hủy.",
         };
 
+        const filteredOrders = orders.filter(o => 
+          orderFilter === "all" ? true : o.status?.toLowerCase() === orderFilter.toLowerCase()
+        );
+
         return (
           <div className="profile-card padding-box">
             <div className="order-header">
@@ -169,9 +255,30 @@ function Profile() {
               ))}
             </div>
             <div className="orders-content" key={orderFilter}>
-              <div className="empty-state">
-                <p>{orderStatusMessages[orderFilter]}</p>
-              </div>
+              {loadingOrders ? (
+                <div className="empty-state">
+                  <p>Đang tải đơn hàng...</p>
+                </div>
+              ) : filteredOrders.length === 0 ? (
+                <div className="empty-state">
+                  <p>{orderStatusMessages[orderFilter]}</p>
+                </div>
+              ) : (
+                <div className="order-list" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {filteredOrders.map(order => (
+                    <div key={order.id} style={{ border: '1px solid #eaeaea', borderRadius: '12px', padding: '20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eaeaea', paddingBottom: '10px' }}>
+                        <strong>Đơn hàng #{order.id}</strong>
+                        <span style={{ color: '#d32f2f', fontWeight: 'bold' }}>{order.status}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666' }}>
+                        <span>Ngày đặt: {new Date(order.createdDate).toLocaleDateString('vi-VN')}</span>
+                        <strong>Tổng tiền: {formatCurrency(order.totalPrice)}</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -180,21 +287,93 @@ function Profile() {
       case "wishlist":
         return (
           <div className="profile-card padding-box">
-            <h2>Sản phẩm yêu thích</h2>
-            <div className="empty-state">
-              <p>Danh sách sản phẩm yêu thích của bạn đang trống.</p>
-            </div>
+            <h2>Sản phẩm yêu thích ({favoriteIds.length})</h2>
+            
+            {loadingFavs ? (
+              <div className="empty-state">
+                <p>Đang tải danh sách yêu thích...</p>
+              </div>
+            ) : favProducts.length === 0 ? (
+              <div className="empty-state">
+                <p>Danh sách sản phẩm yêu thích của bạn đang trống.</p>
+                <button className="btn btn-primary" onClick={() => navigate("/products")}>Khám phá ngay</button>
+              </div>
+            ) : (
+              <div className="products-grid" style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                gap: '24px',
+                marginTop: '24px'
+              }}>
+                {favProducts.map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
           </div>
         );
 
       case "cart":
         return (
           <div className="profile-card padding-box">
-            <h2>Giỏ hàng của bạn</h2>
-            <div className="empty-state">
-              <p>Giỏ hàng hiện tại chưa có sản phẩm nào.</p>
-              <button className="btn btn-primary" onClick={() => navigate("/")}>Mua sắm ngay</button>
-            </div>
+            <h2>Giỏ hàng của bạn ({cartItems.length} sản phẩm)</h2>
+            {cartItems.length === 0 ? (
+              <div className="empty-state">
+                <p>Giỏ hàng hiện tại chưa có sản phẩm nào.</p>
+                <button className="btn btn-primary" onClick={() => navigate("/")}>Mua sắm ngay</button>
+              </div>
+            ) : (
+              <div>
+                <div className="profile-cart-items" style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '15px',
+                  marginTop: '20px',
+                  marginBottom: '20px'
+                }}>
+                  {cartItems.map((item) => (
+                    <div key={item.id} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '15px',
+                      padding: '15px',
+                      border: '1px solid #eee',
+                      borderRadius: '12px'
+                    }}>
+                      <img src={item.image} alt={item.name} style={{
+                        width: '60px',
+                        height: '60px',
+                        objectFit: 'cover',
+                        borderRadius: '8px'
+                      }} />
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ margin: '0 0 5px 0' }}>{item.name}</h4>
+                        <span style={{ color: '#666', fontSize: '0.9rem' }}>
+                          Số lượng: {item.quantity} x {formatCurrency(item.price)}
+                        </span>
+                      </div>
+                      <strong>{formatCurrency(item.price * item.quantity)}</strong>
+                    </div>
+                  ))}
+                </div>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderTop: '1px solid #eee',
+                  paddingTop: '20px',
+                  marginTop: '20px'
+                }}>
+                  <div>
+                    <span style={{ color: '#666' }}>Tổng tiền: </span>
+                    <strong style={{ fontSize: '1.25rem', color: '#d32f2f' }}>{formatCurrency(cartTotal)}</strong>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => navigate("/cart")}>
+                    Đến trang giỏ hàng
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -223,19 +402,42 @@ function Profile() {
         return (
           <div className="profile-card padding-box">
             <h2>Đổi mật khẩu</h2>
-            <form className="profile-form no-padding" onSubmit={(e) => e.preventDefault()}>
+            <form className="profile-form no-padding" onSubmit={handlePasswordChange}>
               <div className="profile-field">
                 <label>Mật khẩu hiện tại</label>
-                <input type="password" placeholder="Nhập mật khẩu cũ" />
+                <input 
+                  type="password" 
+                  placeholder="Nhập mật khẩu cũ" 
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  required
+                />
               </div>
               <div className="profile-field">
                 <label>Mật khẩu mới</label>
-                <input type="password" placeholder="Nhập mật khẩu mới" />
+                <input 
+                  type="password" 
+                  placeholder="Nhập mật khẩu mới" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
               </div>
               <div className="profile-field">
                 <label>Xác nhận mật khẩu mới</label>
-                <input type="password" placeholder="Nhập lại mật khẩu mới" />
+                <input 
+                  type="password" 
+                  placeholder="Nhập lại mật khẩu mới" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
               </div>
+              {pwdMessage && (
+                <div className={`profile-message ${pwdMessageType}`}>{pwdMessage}</div>
+              )}
               <button type="submit" className="btn btn-primary style-fit">Cập nhật mật khẩu</button>
             </form>
           </div>

@@ -260,6 +260,32 @@
   box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 
+.btn-favorite {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border: 2px solid #e0e0e0;
+  background: #fff;
+  border-radius: 12px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.btn-favorite:hover {
+  border-color: #ff4757;
+  color: #ff4757;
+  transform: translateY(-2px);
+}
+
+.btn-favorite.active {
+  border-color: #ff4757;
+  color: #ff4757;
+}
+
 .product-features {
   display: flex;
   flex-direction: column;
