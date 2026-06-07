@@ -1,30 +1,22 @@
-package com.handmade.entity;
+package com.handmade.dto;
 
-import jakarta.persistence.*;
+import com.handmade.entity.Category;
 
-@Entity
-@Table(name = "categories")
-public class Category {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class CategoryResponse {
     private Long id;
-
-    @Column(nullable = false, unique = true, length = 100)
     private String name;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
+    private Boolean active;
 
-    private Boolean active = true;
+    public static CategoryResponse from(Category category) {
+        CategoryResponse response = new CategoryResponse();
 
-    public Category() {
-    }
+        response.setId(category.getId());
+        response.setName(category.getName());
+        response.setDescription(category.getDescription());
+        response.setActive(category.getActive());
 
-    public Category(String name, String description, Boolean active) {
-        this.name = name;
-        this.description = description;
-        this.active = active;
+        return response;
     }
 
     public Long getId() {
