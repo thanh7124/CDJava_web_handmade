@@ -1,99 +1,146 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { products } from '../data/products';
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const CartContext = createContext(null);
 
-// Pre-seed cart with demo items so the page is never empty
-const DEMO_CART = [
-  { productId: 1, quantity: 2 },
-  { productId: 2, quantity: 1 },
-  { productId: 3, quantity: 3 },
-];
+const CART_STORAGE_KEY = "handmade_cart";
 
-function getInitialCart() {
+function readCartFromStorage() {
   try {
-    const stored = localStorage.getItem('handmade_cart');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch {
-    // ignore
+    const rawCart = localStorage.getItem(CART_STORAGE_KEY);
+    return rawCart ? JSON.parse(rawCart) : [];
+  } catch (error) {
+    console.error("Không thể đọc giỏ hàng:", error);
+    return [];
   }
-  return DEMO_CART;
 }
 
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState(getInitialCart);
+  const [cartItems, setCartItems] = useState(readCartFromStorage);
 
-  // Persist to localStorage
   useEffect(() => {
-    localStorage.setItem('handmade_cart', JSON.stringify(cartItems));
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = useCallback((productId, quantity = 1) => {
-    setCartItems(prev => {
-      const existing = prev.find(item => item.productId === productId);
-      if (existing) {
-        return prev.map(item =>
-          item.productId === productId
-            ? { ...item, quantity: item.quantity + quantity }
+  function addToCart(product, quantity = 1) {
+    if (!product) return;
+
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((item) => item.id === product.id);
+
+      if (existingItem) {
+        return prevItems.map((item) =>
+          item.id === product.id
+            ? {
+                ...item,
+                quantity: item.quantity + quantity,
+              }
             : item
         );
       }
-      return [...prev, { productId, quantity }];
+
+      return [
+        ...prevItems,
+        {
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          price: Number(product.price || 0),
+          oldPrice: product.oldPrice ? Number(product.oldPrice) : null,
+          image: product.image,
+          categoryName: product.categoryName,
+          stock: product.stock || 0,
+          quantity,
+        },
+      ];
     });
-  }, []);
+  }
 
-  const removeFromCart = useCallback((productId) => {
-    setCartItems(prev => prev.filter(item => item.productId !== productId));
-  }, []);
+  function decreaseQuantity(productId) {
+    setCartItems((prevItems) =>
+      prevItems
+        .map((item) =>
+          item.id === productId
+            ? {
+                ...item,
+                quantity: item.quantity - 1,
+              }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  }
 
-  const updateQuantity = useCallback((productId, quantity) => {
-    if (quantity <= 0) {
-      setCartItems(prev => prev.filter(item => item.productId !== productId));
-      return;
-    }
-    setCartItems(prev =>
-      prev.map(item =>
-        item.productId === productId ? { ...item, quantity } : item
+  function increaseQuantity(productId) {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === productId
+          ? {
+              ...item,
+              quantity:
+                item.stock && item.quantity >= item.stock
+                  ? item.quantity
+                  : item.quantity + 1,
+            }
+          : item
       )
     );
-  }, []);
+  }
 
-  const clearCart = useCallback(() => {
+  function updateQuantity(productId, quantity) {
+    const safeQuantity = Math.max(1, Number(quantity) || 1);
+
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === productId
+          ? {
+              ...item,
+              quantity:
+                item.stock && safeQuantity > item.stock
+                  ? item.stock
+                  : safeQuantity,
+            }
+          : item
+      )
+    );
+  }
+
+  function removeFromCart(productId) {
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.id !== productId)
+    );
+  }
+
+  function clearCart() {
     setCartItems([]);
-  }, []);
+  }
 
-  // Enrich cart items with product data
-  const enrichedItems = cartItems
-    .map(item => {
-      const product = products.find(p => p.id === item.productId);
-      if (!product) return null;
-      return { ...item, product };
-    })
-    .filter(Boolean);
+  const cartCount = useMemo(() => {
+    return cartItems.reduce((total, item) => total + item.quantity, 0);
+  }, [cartItems]);
 
-  const totalItems = enrichedItems.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = enrichedItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  );
-  const totalSavings = enrichedItems.reduce((sum, item) => {
-    if (item.product.oldPrice) {
-      return sum + (item.product.oldPrice - item.product.price) * item.quantity;
-    }
-    return sum;
-  }, 0);
+  const cartTotal = useMemo(() => {
+    return cartItems.reduce(
+      (total, item) => total + Number(item.price || 0) * item.quantity,
+      0
+    );
+  }, [cartItems]);
 
   const value = {
-    cartItems: enrichedItems,
-    totalItems,
-    subtotal,
-    totalSavings,
+    cartItems,
+
+    // Tên mới
+    cartCount,
+    cartTotal,
+
+    // Tên cũ để Header/Cart cũ không bị lỗi
+    totalItems: cartCount,
+    totalPrice: cartTotal,
+
     addToCart,
-    removeFromCart,
+    decreaseQuantity,
+    increaseQuantity,
     updateQuantity,
+    removeFromCart,
     clearCart,
   };
 
@@ -101,13 +148,15 @@ export function CartProvider({ children }) {
 }
 
 export function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error('useCart must be used inside CartProvider');
-  return ctx;
+  const context = useContext(CartContext);
+
+  if (!context) {
+    throw new Error("useCart phải được dùng bên trong CartProvider");
+  }
+
+  return context;
 }
 
 export function useOptionalCart() {
   return useContext(CartContext);
 }
-
-export { CartContext };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Trash2,
@@ -24,53 +24,108 @@ export default function Cart() {
   const {
     cartItems,
     totalItems,
-    subtotal,
-    totalSavings,
     removeFromCart,
     updateQuantity,
     clearCart,
   } = useCart();
 
   const [selectedItems, setSelectedItems] = useState(
-    () => new Set(cartItems.map(item => item.productId))
+    () => new Set(cartItems.map((item) => item.id))
   );
   const [couponCode, setCouponCode] = useState('');
   const [removingId, setRemovingId] = useState(null);
 
-  const shippingFee = subtotal >= 500000 ? 0 : 30000;
+  useEffect(() => {
+    setSelectedItems((prev) => {
+      const currentIds = cartItems.map((item) => item.id);
+      const next = new Set();
+
+      currentIds.forEach((id) => {
+        if (prev.has(id)) {
+          next.add(id);
+        }
+      });
+
+      cartItems.forEach((item) => {
+        if (!prev.has(item.id)) {
+          next.add(item.id);
+        }
+      });
+
+      return next;
+    });
+  }, [cartItems]);
+
+  const selectedCartItems = useMemo(() => {
+    return cartItems.filter((item) => selectedItems.has(item.id));
+  }, [cartItems, selectedItems]);
+
+  const selectedTotalItems = useMemo(() => {
+    return selectedCartItems.reduce(
+      (total, item) => total + Number(item.quantity || 0),
+      0
+    );
+  }, [selectedCartItems]);
+
+  const subtotal = useMemo(() => {
+    return selectedCartItems.reduce(
+      (total, item) => total + Number(item.price || 0) * Number(item.quantity || 0),
+      0
+    );
+  }, [selectedCartItems]);
+
+  const totalSavings = useMemo(() => {
+    return selectedCartItems.reduce((total, item) => {
+      if (!item.oldPrice) return total;
+
+      return (
+        total +
+        (Number(item.oldPrice) - Number(item.price || 0)) *
+          Number(item.quantity || 0)
+      );
+    }, 0);
+  }, [selectedCartItems]);
+
+  const shippingFee = subtotal >= 500000 || subtotal === 0 ? 0 : 30000;
   const total = subtotal + shippingFee;
 
-  const allSelected = cartItems.length > 0 && selectedItems.size === cartItems.length;
+  const allSelected =
+    cartItems.length > 0 && selectedItems.size === cartItems.length;
 
   const handleSelectAll = () => {
     if (allSelected) {
       setSelectedItems(new Set());
     } else {
-      setSelectedItems(new Set(cartItems.map(item => item.productId)));
+      setSelectedItems(new Set(cartItems.map((item) => item.id)));
     }
   };
 
   const handleSelectItem = (productId) => {
-    setSelectedItems(prev => {
+    setSelectedItems((prev) => {
       const next = new Set(prev);
+
       if (next.has(productId)) {
         next.delete(productId);
       } else {
         next.add(productId);
       }
+
       return next;
     });
   };
 
   const handleRemove = (productId) => {
     setRemovingId(productId);
+
     setTimeout(() => {
       removeFromCart(productId);
-      setSelectedItems(prev => {
+
+      setSelectedItems((prev) => {
         const next = new Set(prev);
         next.delete(productId);
         return next;
       });
+
       setRemovingId(null);
     }, 300);
   };
@@ -84,44 +139,42 @@ export default function Cart() {
     <div className="home-page cart-page">
       <Header />
 
-      {/* Breadcrumb */}
       <nav className="cart-breadcrumb">
         <Link to="/">Trang chủ</Link>
         <ChevronRight />
         <span className="breadcrumb-current">Giỏ hàng</span>
       </nav>
 
-      {/* Page Title */}
       <div className="cart-page-header">
         <h1>Giỏ hàng của bạn</h1>
+
         {totalItems > 0 && (
           <span className="cart-count-badge">{totalItems} sản phẩm</span>
         )}
       </div>
 
-      {/* Main Content */}
       <div className="cart-layout">
         {cartItems.length === 0 ? (
-          /* Empty State */
           <div className="cart-empty">
             <div className="cart-empty-icon">
               <ShoppingBag size={48} />
             </div>
+
             <h2>Giỏ hàng trống</h2>
+
             <p>
               Bạn chưa thêm sản phẩm nào vào giỏ hàng. Hãy khám phá các sản phẩm
               handmade độc đáo của chúng tôi!
             </p>
-            <Link to="/" className="cart-empty-btn">
+
+            <Link to="/products" className="cart-empty-btn">
               <ArrowLeft size={18} />
               Khám phá sản phẩm
             </Link>
           </div>
         ) : (
           <>
-            {/* Cart Items */}
             <div className="cart-items-section">
-              {/* Select All Bar */}
               <div className="cart-select-bar">
                 <label>
                   <input
@@ -131,6 +184,7 @@ export default function Cart() {
                   />
                   Chọn tất cả ({cartItems.length} sản phẩm)
                 </label>
+
                 <button
                   className="cart-clear-btn"
                   onClick={handleClearCart}
@@ -141,14 +195,12 @@ export default function Cart() {
                 </button>
               </div>
 
-              {/* Items List */}
               {cartItems.map((item, idx) => {
-                const { product, quantity, productId } = item;
-                const isRemoving = removingId === productId;
+                const isRemoving = removingId === item.id;
 
                 return (
                   <div
-                    key={productId}
+                    key={item.id}
                     className="cart-item-card"
                     style={{
                       animationDelay: `${idx * 0.05}s`,
@@ -159,39 +211,39 @@ export default function Cart() {
                         : undefined,
                     }}
                   >
-                    {/* Checkbox */}
                     <div className="cart-item-checkbox">
                       <input
                         type="checkbox"
-                        checked={selectedItems.has(productId)}
-                        onChange={() => handleSelectItem(productId)}
+                        checked={selectedItems.has(item.id)}
+                        onChange={() => handleSelectItem(item.id)}
                       />
                     </div>
 
-                    {/* Image */}
                     <div className="cart-item-image">
-                      <img src={product.image} alt={product.name} />
-                      {product.badge && (
-                        <span className="cart-item-badge">{product.badge}</span>
+                      <img src={item.image} alt={item.name} />
+
+                      {item.badge && (
+                        <span className="cart-item-badge">{item.badge}</span>
                       )}
                     </div>
 
-                    {/* Details */}
                     <div className="cart-item-details">
                       <div className="cart-item-top">
                         <div>
                           <h3 className="cart-item-name">
-                            <Link to={`/products/${product.id}`}>
-                              {product.name}
+                            <Link to={`/products/${item.id}`}>
+                              {item.name}
                             </Link>
                           </h3>
+
                           <span className="cart-item-category">
-                            {product.category}
+                            {item.categoryName || 'Handmade'}
                           </span>
                         </div>
+
                         <button
                           className="cart-item-remove"
-                          onClick={() => handleRemove(productId)}
+                          onClick={() => handleRemove(item.id)}
                           title="Xóa sản phẩm"
                           type="button"
                         >
@@ -202,17 +254,20 @@ export default function Cart() {
                       <div className="cart-item-bottom">
                         <div className="cart-item-price">
                           <span className="cart-item-current-price">
-                            {formatCurrency(product.price)}
+                            {formatCurrency(item.price)}
                           </span>
-                          {product.oldPrice && (
+
+                          {item.oldPrice && (
                             <>
                               <span className="cart-item-old-price">
-                                {formatCurrency(product.oldPrice)}
+                                {formatCurrency(item.oldPrice)}
                               </span>
+
                               <span className="cart-item-savings">
                                 Tiết kiệm{' '}
                                 {formatCurrency(
-                                  (product.oldPrice - product.price) * quantity
+                                  (Number(item.oldPrice) - Number(item.price)) *
+                                    Number(item.quantity)
                                 )}
                               </span>
                             </>
@@ -222,19 +277,23 @@ export default function Cart() {
                         <div className="cart-quantity-controls">
                           <button
                             onClick={() =>
-                              updateQuantity(productId, quantity - 1)
+                              updateQuantity(item.id, item.quantity - 1)
                             }
-                            disabled={quantity <= 1}
+                            disabled={item.quantity <= 1}
                             type="button"
                           >
                             <Minus size={16} />
                           </button>
-                          <span className="cart-qty-value">{quantity}</span>
+
+                          <span className="cart-qty-value">
+                            {item.quantity}
+                          </span>
+
                           <button
                             onClick={() =>
-                              updateQuantity(productId, quantity + 1)
+                              updateQuantity(item.id, item.quantity + 1)
                             }
-                            disabled={quantity >= product.stock}
+                            disabled={item.stock && item.quantity >= item.stock}
                             type="button"
                           >
                             <Plus size={16} />
@@ -247,12 +306,10 @@ export default function Cart() {
               })}
             </div>
 
-            {/* Order Summary */}
             <div className="cart-summary-section">
               <div className="cart-summary-card">
                 <h2 className="cart-summary-title">Tóm tắt đơn hàng</h2>
 
-                {/* Coupon Code */}
                 <div className="cart-coupon-row">
                   <input
                     type="text"
@@ -260,22 +317,33 @@ export default function Cart() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
                   />
+
                   <button className="cart-coupon-btn" type="button">
-                    <Tag size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+                    <Tag
+                      size={14}
+                      style={{
+                        display: 'inline',
+                        verticalAlign: 'middle',
+                        marginRight: 4,
+                      }}
+                    />
                     Áp dụng
                   </button>
                 </div>
 
-                {/* Price Lines */}
                 <div className="cart-summary-lines">
                   <div className="cart-summary-line">
-                    <span className="label">Tạm tính ({totalItems} sản phẩm)</span>
+                    <span className="label">
+                      Tạm tính ({selectedTotalItems} sản phẩm)
+                    </span>
+
                     <span className="value">{formatCurrency(subtotal)}</span>
                   </div>
 
                   {totalSavings > 0 && (
                     <div className="cart-summary-line savings">
                       <span className="label">Tiết kiệm</span>
+
                       <span className="value">
                         -{formatCurrency(totalSavings)}
                       </span>
@@ -284,6 +352,7 @@ export default function Cart() {
 
                   <div className="cart-summary-line shipping">
                     <span className="label">Phí vận chuyển</span>
+
                     <span className="value">
                       {shippingFee === 0
                         ? 'Miễn phí'
@@ -292,7 +361,6 @@ export default function Cart() {
                   </div>
                 </div>
 
-                {/* Total */}
                 <div className="cart-summary-total">
                   <span className="label">Tổng cộng</span>
                   <span className="value">{formatCurrency(total)}</span>
@@ -312,18 +380,31 @@ export default function Cart() {
                   </p>
                 )}
 
-                {/* Actions */}
-                <Link to="/checkout" className="cart-checkout-btn">
-                  <CreditCard size={20} />
-                  Thanh toán ngay
-                </Link>
+                {selectedTotalItems > 0 ? (
+                  <Link to="/checkout" className="cart-checkout-btn">
+                    <CreditCard size={20} />
+                    Thanh toán ngay
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className="cart-checkout-btn"
+                    disabled
+                    style={{
+                      opacity: 0.55,
+                      cursor: 'not-allowed',
+                    }}
+                  >
+                    <CreditCard size={20} />
+                    Chọn sản phẩm để thanh toán
+                  </button>
+                )}
 
-                <Link to="/" className="cart-continue-btn">
+                <Link to="/products" className="cart-continue-btn">
                   <ArrowLeft size={16} />
                   Tiếp tục mua sắm
                 </Link>
 
-                {/* Trust badges */}
                 <div className="cart-trust-badges">
                   <div className="cart-trust-item">
                     <div className="cart-trust-icon">
@@ -331,12 +412,14 @@ export default function Cart() {
                     </div>
                     <span>Thanh toán an toàn & bảo mật 100%</span>
                   </div>
+
                   <div className="cart-trust-item">
                     <div className="cart-trust-icon">
                       <Truck size={16} />
                     </div>
                     <span>Giao hàng toàn quốc, miễn phí từ 500.000₫</span>
                   </div>
+
                   <div className="cart-trust-item">
                     <div className="cart-trust-icon">
                       <RefreshCw size={16} />

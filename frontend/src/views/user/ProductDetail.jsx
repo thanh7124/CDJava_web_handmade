@@ -5,12 +5,14 @@ import './ProductDetail.css';
 import './Home.css';
 import Header from '../../components/layout/Header';
 import Footer from '../../components/layout/Footer';
+import { useCart } from "../../context/CartContext";
 import ProductSection from '../../components/home/ProductSection';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const { addToCart } = useCart();
+  const [cartMessage, setCartMessage] = useState("");
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [quantity, setQuantity] = useState(1);
@@ -64,6 +66,16 @@ export default function ProductDetail() {
     if (type === 'increase' && quantity < product.stock) {
       setQuantity((q) => q + 1);
     }
+  };
+
+  const handleAddToCart = () => {
+    addToCart(product, quantity);
+
+    setCartMessage("Đã thêm sản phẩm vào giỏ hàng");
+
+    setTimeout(() => {
+      setCartMessage("");
+    }, 1800);
   };
 
   const mockReviews = [
@@ -227,14 +239,15 @@ export default function ProductDetail() {
               </div>
 
               <div className="action-buttons">
-                <button type="button" className="btn-add-cart">
+                <button type="button" className="btn-add-cart" onClick={handleAddToCart}>
                   Thêm vào giỏ hàng
                 </button>
 
                 <button type="button" className="btn-buy-now">
-                  Mua ngay
+                  Mua ngay  
                 </button>
               </div>
+              {cartMessage && <p className="cart-message">{cartMessage}</p>}
             </div>
 
             <div className="product-features">
