@@ -486,3 +486,31 @@
     flex-direction: column;
   }
 }
+.back-product-btn {
+  margin-bottom: 24px;
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--primary-color);
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.back-product-btn:hover {
+  background: #fff4eb;
+  transform: translateY(-2px);
+}
+
+.detail-badge {
+  width: fit-content;
+  margin-bottom: 18px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff4eb;
+  color: var(--primary-color);
+  font-size: 13px;
+  font-weight: 900;
+}
