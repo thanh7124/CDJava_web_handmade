@@ -1,40 +1,43 @@
 package com.handmade.controller;
 
-import org.springframework.http.ResponseEntity;
+import com.handmade.dto.ApiResponse;
+import com.handmade.dto.PageResponse;
+import com.handmade.dto.ProductResponse;
+import com.handmade.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class ProductController {
+    private final ProductService productService;
+
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @GetMapping
-    public ResponseEntity<?> getAllProducts() {
-        // Fetch all products
-        return ResponseEntity.ok("Products list");
+    public ApiResponse<PageResponse<ProductResponse>> getProducts(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "Tất cả") String category,
+            @RequestParam(defaultValue = "default") String sort,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "8") int limit
+    ) {
+        PageResponse<ProductResponse> result = productService.getProducts(
+                search,
+                category,
+                sort,
+                page,
+                limit
+        );
+
+        return ApiResponse.ok("Lấy danh sách sản phẩm thành công", result);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProductById(@PathVariable Long id) {
-        // Fetch product by ID
-        return ResponseEntity.ok("Product detail");
-    }
+    public ApiResponse<ProductResponse> getProductById(@PathVariable Long id) {
+        ProductResponse result = productService.getProductById(id);
 
-    @PostMapping
-    public ResponseEntity<?> createProduct(@RequestBody Object productDTO) {
-        // Create new product
-        return ResponseEntity.ok("Product created");
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Object productDTO) {
-        // Update product
-        return ResponseEntity.ok("Product updated");
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
-        // Delete product
-        return ResponseEntity.ok("Product deleted");
+        return ApiResponse.ok("Lấy chi tiết sản phẩm thành công", result);
     }
 }

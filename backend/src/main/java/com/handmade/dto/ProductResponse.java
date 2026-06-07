@@ -1,83 +1,45 @@
-package com.handmade.entity;
+package com.handmade.dto;
 
-import jakarta.persistence.*;
+import com.handmade.entity.Product;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ProductResponse {
     private Long id;
-
-    @Column(nullable = false, length = 150)
     private String name;
-
-    @Column(nullable = false, unique = true, length = 180)
     private String slug;
-
-    @Column(nullable = false)
     private BigDecimal price;
-
     private BigDecimal oldPrice;
-
+    private String category;
     private Double rating;
-
     private Integer sold;
-
     private Integer stock;
-
     private String badge;
-
-    @Column(length = 800)
     private String image;
-
-    @ElementCollection
-    @CollectionTable(
-            name = "product_images",
-            joinColumns = @JoinColumn(name = "product_id")
-    )
-    @Column(name = "image_url", length = 800)
-    private List<String> images = new ArrayList<>();
-
-    @Column(columnDefinition = "TEXT")
+    private List<String> images;
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    public static ProductResponse from(Product product) {
+        ProductResponse response = new ProductResponse();
 
-    public Product() {
-    }
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setSlug(product.getSlug());
+        response.setPrice(product.getPrice());
+        response.setOldPrice(product.getOldPrice());
+        response.setCategory(
+                product.getCategory() != null ? product.getCategory().getName() : null
+        );
+        response.setRating(product.getRating());
+        response.setSold(product.getSold());
+        response.setStock(product.getStock());
+        response.setBadge(product.getBadge());
+        response.setImage(product.getImage());
+        response.setImages(product.getImages());
+        response.setDescription(product.getDescription());
 
-    public Product(
-            String name,
-            String slug,
-            BigDecimal price,
-            BigDecimal oldPrice,
-            Double rating,
-            Integer sold,
-            Integer stock,
-            String badge,
-            String image,
-            String description,
-            Category category
-    ) {
-        this.name = name;
-        this.slug = slug;
-        this.price = price;
-        this.oldPrice = oldPrice;
-        this.rating = rating;
-        this.sold = sold;
-        this.stock = stock;
-        this.badge = badge;
-        this.image = image;
-        this.description = description;
-        this.category = category;
-        this.images.add(image);
+        return response;
     }
 
     public Long getId() {
@@ -98,6 +60,10 @@ public class Product {
 
     public BigDecimal getOldPrice() {
         return oldPrice;
+    }
+
+    public String getCategory() {
+        return category;
     }
 
     public Double getRating() {
@@ -128,10 +94,6 @@ public class Product {
         return description;
     }
 
-    public Category getCategory() {
-        return category;
-    }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -150,6 +112,10 @@ public class Product {
 
     public void setOldPrice(BigDecimal oldPrice) {
         this.oldPrice = oldPrice;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public void setRating(Double rating) {
@@ -178,9 +144,5 @@ public class Product {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
     }
 }
