@@ -23,6 +23,14 @@ public class Order {
     @Column(columnDefinition = "VARCHAR(20) DEFAULT 'PENDING'")
     private String status;
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     private String shippingAddress;
 
     private LocalDateTime createdDate;

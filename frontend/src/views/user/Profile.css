@@ -1,212 +1,474 @@
-.profile-page {
-  min-height: 100vh;
-  background: #f7f1ea;
+/* --- LAYOUT CHUYỂN ĐỔI SANG BẢN CÓ SIDEBAR --- */
+.profile-layout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  align-items: start;
 }
 
 .profile-main {
-  padding: clamp(32px, 4vw, 60px) var(--page-padding) 80px;
+  padding: 40px 0 80px;
 }
 
-.profile-panel {
-  max-width: 1040px;
-  margin: 0 auto;
-  display: grid;
-  gap: 28px;
-}
-
-.profile-top {
+.profile-content-area {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 22px;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.profile-badge {
-  margin: 0 0 12px;
-  display: inline-block;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
   text-transform: uppercase;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--primary-color);
-  font-size: 13px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.25s ease;
 }
 
-.profile-top h1 {
-  margin: 0 0 12px;
-  font-size: clamp(34px, 3vw, 48px);
-  line-height: 1.05;
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
 }
 
-.profile-subtitle {
-  margin: 0;
-  max-width: 680px;
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background: #c75f2a;
+  border-color: #c75f2a;
+}
+
+.btn-secondary {
+  background: #fff;
   color: #6f5b4e;
-  line-height: 1.8;
+  border-color: #d7c6b7;
+}
+
+.btn-secondary:hover {
+  background: #faf2ea;
+}
+
+.btn-danger {
+  background: #a62818;
+  color: #fff;
+  border-color: #a62818;
+}
+
+.btn-danger:hover {
+  background: #882216;
+  border-color: #882216;
+}
+
+.btn-sm {
+  padding: 10px 18px;
+  font-size: 0.88rem;
+}
+
+.style-fit {
+  width: auto;
+}
+
+.logout-btn {
+  width: 100%;
+  margin-top: 14px;
 }
 
 .profile-card {
   background: white;
-  border-radius: 32px;
-  box-shadow: 0 18px 44px rgba(78, 48, 30, 0.08);
-  overflow: hidden;
+  border: 1px solid #f1ebe5;
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: 0 18px 44px rgba(78, 48, 30, 0.05);
+}
+
+.profile-card h2 {
+  margin: 0 0 18px;
+  font-size: 26px;
+  color: #4b3428;
 }
 
 .profile-card-header {
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 28px 32px 28px;
-  border-bottom: 1px solid #f1ebe5;
-}
-
-.profile-avatar {
-  width: 84px;
-  height: 84px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--primary-color);
-  color: white;
-  font-size: 32px;
-  font-weight: 800;
+  margin-bottom: 28px;
+  position: relative;
 }
 
 .profile-card-header h2 {
-  margin: 0 0 8px;
-  font-size: 26px;
+  margin: 0;
+  font-size: 22px;
 }
 
-.profile-role {
-  display: inline-block;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(167, 95, 55, 0.1);
-  color: var(--primary-color);
-  font-weight: 700;
+.profile-card-header .profile-avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 24px;
+}
+
+.profile-card-header .profile-role {
+  display: block;
+  margin-top: 6px;
+  color: #8e7a6d;
+  font-size: 14px;
 }
 
 .profile-form {
   display: grid;
   gap: 20px;
-  padding: 32px;
-}
-
-.profile-field {
-  display: grid;
-  gap: 10px;
 }
 
 .profile-field label {
-  font-weight: 700;
+  display: block;
+  margin-bottom: 8px;
   color: #4b3428;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .profile-field input {
   width: 100%;
-  min-height: 52px;
-  padding: 14px 18px;
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-  background: #fff;
-  outline: none;
-  color: var(--text-color);
+  background: #faf5f0;
+  border: 1px solid #e6d7cf;
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: #4b3428;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.profile-field input:disabled {
-  background: #fbf4ee;
-}
-
-.profile-message {
-  padding: 16px 18px;
-  border-radius: 18px;
-  font-weight: 700;
-}
-
-.profile-message.success {
-  background: #e7f4e6;
-  color: #26622a;
-}
-
-.profile-message.error {
-  background: #ffe6e2;
-  color: #a62818;
+.profile-field input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(167, 95, 55, 0.12);
 }
 
 .profile-actions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 
-.profile-extra {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
+.profile-message {
+  padding: 16px 18px;
+  border-radius: 16px;
+  font-weight: 600;
 }
 
-.profile-extra-card {
-  flex: 1;
-  min-width: 280px;
+.profile-message.success {
+  background: #eaf8f0;
+  color: #176636;
+  border: 1px solid #c9e8d0;
+}
+
+.profile-message.error {
+  background: #fff1f0;
+  color: #9d2f2f;
+  border: 1px solid #f3c7c7;
+}
+
+/* --- SIDEBAR STYLING --- */
+.profile-sidebar {
   background: white;
   border-radius: 28px;
-  padding: 28px;
-  box-shadow: 0 18px 44px rgba(78, 48, 30, 0.06);
+  padding: 24px;
+  box-shadow: 0 18px 44px rgba(78, 48, 30, 0.05);
 }
 
-.profile-extra-card h3 {
-  margin: 0 0 12px;
-  font-size: 20px;
+.sidebar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-left: 8px;
 }
 
-.profile-extra-card p {
-  margin: 0;
-  color: #6f5b4e;
-  line-height: 1.75;
-}
-
-.logout-btn {
-  width: 100%;
-  max-width: 260px;
-}
-
-.btn {
-  border: none;
-  border-radius: 999px;
-  padding: 14px 26px;
-  cursor: pointer;
+.sidebar-avatar {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
   font-weight: 800;
-  transition: transform 0.2s ease, background 0.2s ease;
+  font-size: 18px;
 }
 
-.btn-primary {
+.sidebar-greet {
+  margin: 0;
+  font-size: 13px;
+  color: #8e7a6d;
+}
+
+.sidebar-name {
+  margin: 0;
+  font-size: 16px;
+  color: #4b3428;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-link {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #6f5b4e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background: #fbf4ee;
+  color: var(--primary-color);
+}
+
+.sidebar-link.active {
   background: var(--primary-color);
   color: white;
 }
 
-.btn-secondary {
-  background: #f4e4d6;
-  color: #5b3a29;
+.sidebar-divider {
+  border: none;
+  border-top: 1px solid #f1ebe5;
+  margin: 20px 0;
 }
 
-.btn:hover {
-  transform: translateY(-1px);
+/* --- CHỈNH SỬA LẠI COMPONENT PROFILE CARD CŨ CHO PHÙ HỢP --- */
+.profile-card-header {
+  position: relative;
 }
 
+.edit-toggle-btn {
+  position: absolute;
+  right: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* --- STYLE BỔ SUNG CHO CÁC KHUNG TÍNH NĂNG MỚI --- */
+.padding-box {
+  padding: 32px;
+}
+
+.padding-box h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-size: 24px;
+  color: #4b3428;
+}
+
+.no-padding {
+  padding: 0 !important;
+}
+
+.style-fit {
+  width: fit-content;
+  margin-top: 10px;
+}
+
+.flex-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.flex-header h2 {
+  margin: 0;
+}
+
+.btn-sm {
+  padding: 8px 18px;
+  font-size: 14px;
+}
+
+/* Giao diện trống (Giỏ hàng, Yêu thích, Đơn hàng) */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8e7a6d;
+}
+.empty-state p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+/* Đơn hàng mock-tabs */
+.order-tabs-mock {
+  display: flex;
+  gap: 12px;
+  border-bottom: 2px solid #f1ebe5;
+  padding-bottom: 14px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.order-tab-button {
+  background: #fff;
+  border: 1px solid #e6d7cf;
+  color: #6f5b4e;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.order-tab-button:hover {
+  background: #fbf4ee;
+  border-color: #d7c0af;
+}
+
+.order-tab-button.active {
+  background: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+}
+
+.orders-content {
+  animation: fadeIn 0.28s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Địa chỉ giao hàng */
+.address-list {
+  display: grid;
+  gap: 16px;
+}
+
+.address-item {
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  background: #fff;
+}
+
+.address-item.default {
+  border-color: var(--primary-color);
+  background: rgba(167, 95, 55, 0.02);
+}
+
+.address-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--primary-color);
+  color: white;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-weight: 700;
+}
+
+.address-item p {
+  margin: 0 0 8px;
+  color: #4b3428;
+}
+.address-item p:last-child {
+  margin-bottom: 0;
+  color: #6f5b4e;
+}
+
+/* Thiết lập riêng tư & Yêu cầu xóa tài khoản */
+.privacy-section h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.danger-zone {
+  margin-top: 32px;
+  border: 1px solid #ffe6e2;
+  background: #fffdfd;
+  padding: 24px;
+  border-radius: 20px;
+}
+
+.danger-zone h4 {
+  margin: 0 0 12px;
+  color: #a62818;
+  font-size: 16px;
+}
+
+.btn-danger {
+  background: #a62818;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-weight: 800;
+  transition: opacity 0.2s;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+/* --- ĐÁP ỨNG DI ĐỘNG (RESPONSIVE) --- */
 @media (max-width: 960px) {
-  .profile-top {
-    flex-direction: column;
-    align-items: stretch;
+  .profile-layout-container {
+    grid-template-columns: 1fr; /* Sidebar lên trên, Nội dung xuống dưới */
+    gap: 24px;
   }
-}
-
-@media (max-width: 680px) {
+  
   .profile-main {
-    padding: 24px 16px 60px;
+    padding: 24px 0 60px;
   }
-
-  .profile-card-header,
-  .profile-form,
-  .profile-extra-card {
-    padding-left: 20px;
-    padding-right: 20px;
+  
+  .profile-card {
+    padding: 24px;
+  }
+  
+  .edit-toggle-btn {
+    position: static;
+    transform: none;
+    margin-top: 12px;
+  }
+  
+  .profile-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .sidebar-user-info {
+    gap: 10px;
   }
 }

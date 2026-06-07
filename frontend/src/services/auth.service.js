@@ -1,4 +1,5 @@
 const API_URL = "http://localhost:8080/api";
+const CURRENT_USER_KEY = "user";
 
 async function handleResponse(response) {
   const data = await response.json();
@@ -32,4 +33,72 @@ export async function registerApi(payload) {
   });
 
   return handleResponse(response);
+}
+
+/*
+  Các hàm dưới đây giữ lại để tránh lỗi nếu Profile/Header/file cũ còn import.
+  Login/Register hiện tại nên dùng AuthContext → loginApi/registerApi.
+*/
+
+export async function loginUser(payload) {
+  const result = await loginApi(payload);
+
+  const currentUser = {
+    ...result.user,
+    token: result.token,
+  };
+
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+
+  return currentUser;
+}
+
+export async function registerUser(payload) {
+  const result = await registerApi(payload);
+
+  const currentUser = {
+    ...result.user,
+    token: result.token,
+  };
+
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+
+  return currentUser;
+}
+
+export function getCurrentUser() {
+  try {
+    const rawUser = localStorage.getItem(CURRENT_USER_KEY);
+    return rawUser ? JSON.parse(rawUser) : null;
+  } catch (error) {
+    console.error("Không thể đọc thông tin người dùng:", error);
+    return null;
+  }
+}
+
+export function logoutUser() {
+  localStorage.removeItem(CURRENT_USER_KEY);
+}
+
+export function updateUser({ id, fullName, email, phone }) {
+  const currentUser = getCurrentUser();
+
+  if (!currentUser || Number(currentUser.id) !== Number(id)) {
+    throw new Error("Người dùng không tồn tại");
+  }
+
+  const updatedUser = {
+    ...currentUser,
+    fullName: fullName?.trim() || currentUser.fullName,
+    email: email?.trim().toLowerCase() || currentUser.email,
+    phone: phone?.trim() || currentUser.phone,
+  };
+
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+
+  return updatedUser;
+}
+
+export function updateUserPassword() {
+  throw new Error("Chức năng đổi mật khẩu chưa được kết nối API");
 }

@@ -1,4 +1,4 @@
-import { Search, ShoppingBag, Heart, User, X, LogOut } from "lucide-react";
+import { Search, ShoppingBag, Heart, User, X } from "lucide-react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useOptionalCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
@@ -198,10 +198,9 @@ function Header() {
 
                 <button
                   type="button"
-                  className="account-dropdown-item logout"
+                  className="account-dropdown-item account-dropdown-logout"
                   onClick={handleLogout}
                 >
-                  <LogOut size={16} />
                   Đăng xuất
                 </button>
               </>
