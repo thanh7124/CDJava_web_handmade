@@ -11,7 +11,7 @@ import "./Auth.css";
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,12 +30,16 @@ function Login() {
     });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
 
     try {
-      login(formData);
+      await login({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
+
       navigate("/");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Đăng nhập thất bại");
@@ -106,8 +110,8 @@ function Login() {
               <a href="/">Quên mật khẩu?</a>
             </div>
 
-            <button type="submit" className="auth-submit-btn">
-              Đăng nhập
+            <button type="submit" className="auth-submit-btn" disabled={loading}>
+              {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </button>
 
             <p className="auth-switch">

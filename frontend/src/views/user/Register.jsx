@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, User, Phone } from "lucide-react";
 
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
@@ -11,7 +11,7 @@ import "./Auth.css";
 
 function Register() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, loading } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -20,6 +20,7 @@ function Register() {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -45,7 +46,7 @@ function Register() {
     return "";
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
 
@@ -57,9 +58,10 @@ function Register() {
     }
 
     try {
-      register({
-        fullName: formData.fullName,
-        email: formData.email,
+      await register({
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         password: formData.password,
       });
 
@@ -117,6 +119,20 @@ function Register() {
             </label>
 
             <label>
+              Số điện thoại
+              <div className="auth-input">
+                <Phone size={20} />
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Nhập số điện thoại"
+                  value={formData.phone}
+                  onChange={handleChange}
+                />
+              </div>
+            </label>
+
+            <label>
               Mật khẩu
               <div className="auth-input">
                 <Lock size={20} />
@@ -168,8 +184,8 @@ function Register() {
               </div>
             </label>
 
-            <button type="submit" className="auth-submit-btn">
-              Đăng ký
+            <button type="submit" className="auth-submit-btn" disabled={loading}>
+              {loading ? "Đang đăng ký..." : "Đăng ký"}
             </button>
 
             <p className="auth-switch">

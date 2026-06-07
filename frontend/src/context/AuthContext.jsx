@@ -1,48 +1,86 @@
-import { createContext, useContext, useState } from "react";
-import {
-  getCurrentUser,
-  loginUser,
-  logoutUser,
-  registerUser,
-  updateUser,
-} from "../services/auth.service";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { loginApi, registerApi } from "../services/auth.service";
 
 const AuthContext = createContext(null);
 
+const AUTH_STORAGE_KEY = "user";
+
+function readUserFromStorage() {
+  try {
+    const rawUser = localStorage.getItem(AUTH_STORAGE_KEY);
+    return rawUser ? JSON.parse(rawUser) : null;
+  } catch (error) {
+    console.error("Không thể đọc thông tin đăng nhập:", error);
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(getCurrentUser());
+  const [user, setUser] = useState(readUserFromStorage);
+  const [loading, setLoading] = useState(false);
 
-  const login = (formData) => {
-    const loggedUser = loginUser(formData);
-    setUser(loggedUser);
-    return loggedUser;
-  };
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+  }, [user]);
 
-  const register = (formData) => {
-    const registeredUser = registerUser(formData);
-    setUser(registeredUser);
-    return registeredUser;
-  };
+  async function login(payload) {
+    setLoading(true);
 
-  const logout = () => {
-    logoutUser();
+    try {
+      const result = await loginApi(payload);
+
+      const authUser = {
+        ...result.user,
+        token: result.token,
+      };
+
+      setUser(authUser);
+
+      return authUser;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function register(payload) {
+    setLoading(true);
+
+    try {
+      const result = await registerApi(payload);
+
+      const authUser = {
+        ...result.user,
+        token: result.token,
+      };
+
+      setUser(authUser);
+
+      return authUser;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function logout() {
     setUser(null);
-  };
+  }
 
-  const updateUserProfile = (userData) => {
-    const updatedUser = updateUser(userData);
-    setUser(updatedUser);
-    return updatedUser;
-  };
-
-  const value = {
-    user,
-    isAuthenticated: Boolean(user),
-    login,
-    register,
-    logout,
-    updateUserProfile,
-  };
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      isAuthenticated: Boolean(user?.token),
+      token: user?.token || null,
+      login,
+      register,
+      logout,
+    }),
+    [user, loading]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -55,4 +93,8 @@ export function useAuth() {
   }
 
   return context;
+}
+
+export function useOptionalAuth() {
+  return useContext(AuthContext);
 }
