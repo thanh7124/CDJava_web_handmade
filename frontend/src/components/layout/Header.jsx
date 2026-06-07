@@ -1,34 +1,32 @@
-import { Search, ShoppingBag, Heart, User, X } from "lucide-react";
+import { Search, ShoppingBag, Heart, User, LogOut } from "lucide-react";
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useOptionalCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useEffect, useRef } from "react";
-import { getAllProducts, formatCurrency, getProductCategories } from "../../services/product.service";
+import { fetchCategories } from "../../services/product.service";
 
 function Header() {
   const cart = useOptionalCart();
-  const totalItems = cart?.totalItems ?? 0;
+  const totalItems = cart?.totalItems ?? cart?.cartCount ?? 0;
 
   const { user, isAuthenticated, logout } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
   const navLinksRef = useRef(null);
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
-
-
-  const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef(null);
 
-  const allProducts = getAllProducts() || [];
-  const categories = getProductCategories().filter((c) => c !== "Tất cả");
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const [accountOpen, setAccountOpen] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   const updateIndicator = () => {
     const navRoot = navLinksRef.current;
     if (!navRoot) return;
 
-    const activeLink = navRoot.querySelector('.nav-link.active');
+    const activeLink = navRoot.querySelector(".nav-link.active");
+
     if (!activeLink) {
       setIndicatorStyle({ left: 0, width: 0 });
       return;
@@ -45,10 +43,25 @@ function Header() {
 
   useEffect(() => {
     updateIndicator();
-    window.addEventListener('resize', updateIndicator);
-    return () => window.removeEventListener('resize', updateIndicator);
+
+    window.addEventListener("resize", updateIndicator);
+
+    return () => window.removeEventListener("resize", updateIndicator);
   }, [location]);
 
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const data = await fetchCategories();
+        setCategories(data || []);
+      } catch (error) {
+        console.error("Lỗi tải danh mục header:", error);
+        setCategories([]);
+      }
+    }
+
+    loadCategories();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -64,8 +77,6 @@ function Header() {
     };
   }, []);
 
-
-
   const handleLogout = () => {
     logout();
     setAccountOpen(false);
@@ -79,8 +90,24 @@ function Header() {
       </Link>
 
       <nav className="nav-links" ref={navLinksRef}>
-        <NavLink to="/" end className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>Trang chủ</NavLink>
-        <NavLink to="/products" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>Sản phẩm</NavLink>
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          Trang chủ
+        </NavLink>
+
+        <NavLink
+          to="/products"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          Sản phẩm
+        </NavLink>
 
         <div
           className={`nav-item categories ${showCategories ? "open" : ""}`}
@@ -90,7 +117,7 @@ function Header() {
           <button
             type="button"
             className="nav-link categories-toggle"
-            onClick={() => setShowCategories((s) => !s)}
+            onClick={() => setShowCategories((state) => !state)}
             aria-haspopup="true"
             aria-expanded={showCategories}
           >
@@ -98,29 +125,56 @@ function Header() {
           </button>
 
           <div className="categories-dropdown" role="menu">
-            {categories.map((cat) => {
-              const count = allProducts.filter((p) => p.category === cat).length;
-
-              return (
+            {categories.length > 0 ? (
+              categories.map((category) => (
                 <Link
-                  to={`/products?category=${encodeURIComponent(cat)}`}
-                  key={cat}
+                  to={`/products?categoryId=${category.id}`}
+                  key={category.id}
                   className="dropdown-item"
+                  onClick={() => setShowCategories(false)}
                 >
-                  <span className="dropdown-name">{cat}</span>
-                  <span className="dropdown-count">{count} sp</span>
+                  <span className="dropdown-name">{category.name}</span>
+                  <span className="dropdown-count">Xem</span>
                 </Link>
-              );
-            })}
+              ))
+            ) : (
+              <span className="dropdown-item">
+                <span className="dropdown-name">Chưa có danh mục</span>
+              </span>
+            )}
           </div>
         </div>
 
-        <NavLink to="/about" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>Về chúng tôi</NavLink>
-        <span className="nav-indicator" style={{ left: indicatorStyle.left, width: indicatorStyle.width }} />
+        <NavLink
+          to="/about"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          Về chúng tôi
+        </NavLink>
+
+        <span
+          className="nav-indicator"
+          style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
+        />
       </nav>
 
       <div className="nav-actions">
-        <Link to="/?showSearch=1" aria-label="Tìm kiếm" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', background: 'transparent', color: '#5b3a29', textDecoration: 'none' }}>
+        <Link
+          to="/?showSearch=1"
+          aria-label="Tìm kiếm"
+          style={{
+            display: "grid",
+            placeItems: "center",
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            background: "transparent",
+            color: "#5b3a29",
+            textDecoration: "none",
+          }}
+        >
           <Search size={20} />
         </Link>
 
@@ -129,9 +183,10 @@ function Header() {
         </button>
 
         <Link
-          to="/cart"
+          to={isAuthenticated ? "/cart" : "/login"}
           className="nav-cart-link"
           aria-label="Giỏ hàng"
+          title={isAuthenticated ? "Giỏ hàng" : "Đăng nhập để xem giỏ hàng"}
           style={{
             position: "relative",
             display: "grid",
@@ -147,7 +202,7 @@ function Header() {
         >
           <ShoppingBag size={20} />
 
-          {totalItems > 0 && (
+          {isAuthenticated && totalItems > 0 && (
             <span
               style={{
                 position: "absolute",
@@ -170,7 +225,10 @@ function Header() {
           )}
         </Link>
 
-        <div className={`account-menu ${accountOpen ? "open" : ""}`} ref={accountRef}>
+        <div
+          className={`account-menu ${accountOpen ? "open" : ""}`}
+          ref={accountRef}
+        >
           <button
             type="button"
             aria-label="Tài khoản"
@@ -216,7 +274,7 @@ function Header() {
 
                 <Link
                   to="/register"
-                  className="account-dropdown-item primary"
+                  className="account-dropdown-item"
                   onClick={() => setAccountOpen(false)}
                 >
                   Đăng ký
