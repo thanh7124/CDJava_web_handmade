@@ -160,11 +160,11 @@ export default function Checkout() {
           </Link>
 
           <Link
-            to="/profile"
+            to="/orders"
             className="checkout-edit-cart"
             style={{ marginTop: 12 }}
           >
-            Xem tài khoản
+            Xem đơn hàng của tôi
           </Link>
         </div>
 
