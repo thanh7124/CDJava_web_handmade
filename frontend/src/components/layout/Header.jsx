@@ -4,6 +4,7 @@ import { useOptionalCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useState, useEffect, useRef } from "react";
 import { fetchCategories } from "../../services/product.service";
+import "./Header.css";
 
 function Header() {
   const cart = useOptionalCart();
