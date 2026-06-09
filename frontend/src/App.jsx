@@ -9,6 +9,8 @@ import Register from "./views/user/Register";
 import Checkout from "./views/user/Checkout";
 import About from "./views/user/About";
 import Profile from "./views/user/Profile";
+import Orders from "./views/user/Orders";
+import OrderDetail from "./views/user/OrderDetail";
 
 import Dashboard from "./views/admin/Dashboard";
 import ManageProducts from "./views/admin/ManageProducts";
@@ -33,6 +35,9 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/orders/:id" element={<OrderDetail />} />  
 
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/manage-products" element={<ManageProducts />} />
