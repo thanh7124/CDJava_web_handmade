@@ -3,12 +3,14 @@ package com.handmade.entity;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "products")
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,13 +24,14 @@ public class Product {
     @Column(nullable = false)
     private BigDecimal price;
 
+    @Column(name = "old_price")
     private BigDecimal oldPrice;
 
-    private Double rating;
+    private Double rating = 0.0;
 
-    private Integer sold;
+    private Integer sold = 0;
 
-    private Integer stock;
+    private Integer stock = 0;
 
     private String badge;
 
@@ -49,6 +52,14 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    private Boolean active = true;
+
+    @Column(name = "created_date")
+    private LocalDateTime createdDate;
+
+    @Column(name = "updated_date")
+    private LocalDateTime updatedDate;
 
     public Product() {
     }
@@ -77,7 +88,38 @@ public class Product {
         this.image = image;
         this.description = description;
         this.category = category;
-        this.images.add(image);
+        this.active = true;
+
+        if (image != null && !image.isBlank()) {
+            this.images.add(image);
+        }
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (rating == null) {
+            rating = 0.0;
+        }
+
+        if (sold == null) {
+            sold = 0;
+        }
+
+        if (stock == null) {
+            stock = 0;
+        }
+
+        if (active == null) {
+            active = true;
+        }
+
+        createdDate = LocalDateTime.now();
+        updatedDate = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedDate = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -132,6 +174,18 @@ public class Product {
         return category;
     }
 
+    public Boolean getActive() {
+        return active;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public LocalDateTime getUpdatedDate() {
+        return updatedDate;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -182,5 +236,17 @@ public class Product {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public void setUpdatedDate(LocalDateTime updatedDate) {
+        this.updatedDate = updatedDate;
     }
 }

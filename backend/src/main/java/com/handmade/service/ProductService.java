@@ -70,6 +70,10 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
 
+        if (product.getActive() != null && !product.getActive()) {
+            throw new RuntimeException("Sản phẩm hiện không còn được hiển thị");
+        }
+
         return ProductResponse.from(product);
     }
 
@@ -86,6 +90,16 @@ public class ProductService {
         Product savedProduct = productRepository.save(product);
 
         return ProductResponse.from(savedProduct);
+    }
+
+    public List<ProductResponse> createProducts(List<ProductRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            throw new RuntimeException("Danh sách sản phẩm không được để trống");
+        }
+
+        return requests.stream()
+                .map(this::createProduct)
+                .toList();
     }
 
     public ProductResponse updateProduct(Long id, ProductRequest request) {
@@ -117,13 +131,17 @@ public class ProductService {
             ProductRequest request,
             Category category
     ) {
-        product.setName(request.getName().trim());
+        String name = request.getName().trim();
 
         String slug = request.getSlug();
+
         if (slug == null || slug.trim().isEmpty()) {
-            slug = generateSlug(request.getName());
+            slug = generateSlug(name);
+        } else {
+            slug = generateSlug(slug);
         }
 
+        product.setName(name);
         product.setSlug(slug);
         product.setPrice(request.getPrice());
         product.setOldPrice(request.getOldPrice());
@@ -132,9 +150,24 @@ public class ProductService {
         product.setStock(request.getStock() != null ? request.getStock() : 0);
         product.setBadge(request.getBadge());
         product.setImage(request.getImage());
-        product.setImages(request.getImages() != null ? request.getImages() : new ArrayList<>());
+        product.setImages(buildProductImages(request));
         product.setDescription(request.getDescription());
         product.setCategory(category);
+        product.setActive(request.getActive() != null ? request.getActive() : true);
+    }
+
+    private List<String> buildProductImages(ProductRequest request) {
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            return request.getImages();
+        }
+
+        List<String> images = new ArrayList<>();
+
+        if (request.getImage() != null && !request.getImage().trim().isEmpty()) {
+            images.add(request.getImage().trim());
+        }
+
+        return images;
     }
 
     private void validateProductRequest(ProductRequest request) {
@@ -154,6 +187,11 @@ public class ProductService {
     private Specification<Product> buildSpecification(String search, Long categoryId) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            predicates.add(criteriaBuilder.or(
+                    criteriaBuilder.isNull(root.get("active")),
+                    criteriaBuilder.isTrue(root.get("active"))
+            ));
 
             if (search != null && !search.trim().isEmpty()) {
                 String keyword = "%" + search.trim().toLowerCase() + "%";
@@ -177,7 +215,7 @@ public class ProductService {
 
     private Sort buildSort(String sort) {
         if (sort == null || sort.trim().isEmpty()) {
-            return Sort.by(Sort.Direction.DESC, "id");
+            return Sort.by(Sort.Direction.DESC, "createdDate");
         }
 
         return switch (sort) {
@@ -185,8 +223,8 @@ public class ProductService {
             case "price-desc" -> Sort.by(Sort.Direction.DESC, "price");
             case "best-seller" -> Sort.by(Sort.Direction.DESC, "sold");
             case "rating" -> Sort.by(Sort.Direction.DESC, "rating");
-            case "newest" -> Sort.by(Sort.Direction.DESC, "id");
-            default -> Sort.by(Sort.Direction.DESC, "id");
+            case "newest" -> Sort.by(Sort.Direction.DESC, "createdDate");
+            default -> Sort.by(Sort.Direction.DESC, "createdDate");
         };
     }
 

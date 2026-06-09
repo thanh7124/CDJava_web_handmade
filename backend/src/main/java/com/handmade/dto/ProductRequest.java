@@ -16,6 +16,7 @@ public class ProductRequest {
     private List<String> images;
     private String description;
     private Long categoryId;
+    private Boolean active;
 
     public String getName() {
         return name;
@@ -65,6 +66,10 @@ public class ProductRequest {
         return categoryId;
     }
 
+    public Boolean getActive() {
+        return active;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -111,5 +116,9 @@ public class ProductRequest {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

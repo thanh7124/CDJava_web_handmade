@@ -3,6 +3,7 @@ package com.handmade.dto;
 import com.handmade.entity.Product;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ProductResponse {
@@ -18,8 +19,13 @@ public class ProductResponse {
     private String image;
     private List<String> images;
     private String description;
+    private Boolean active;
+
     private Long categoryId;
     private String categoryName;
+
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
 
     public static ProductResponse from(Product product) {
         ProductResponse response = new ProductResponse();
@@ -36,6 +42,9 @@ public class ProductResponse {
         response.setImage(product.getImage());
         response.setImages(product.getImages());
         response.setDescription(product.getDescription());
+        response.setActive(product.getActive());
+        response.setCreatedDate(product.getCreatedDate());
+        response.setUpdatedDate(product.getUpdatedDate());
 
         if (product.getCategory() != null) {
             response.setCategoryId(product.getCategory().getId());
@@ -93,12 +102,24 @@ public class ProductResponse {
         return description;
     }
 
+    public Boolean getActive() {
+        return active;
+    }
+
     public Long getCategoryId() {
         return categoryId;
     }
 
     public String getCategoryName() {
         return categoryName;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public LocalDateTime getUpdatedDate() {
+        return updatedDate;
     }
 
     public void setId(Long id) {
@@ -149,11 +170,23 @@ public class ProductResponse {
         this.description = description;
     }
 
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
     }
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public void setUpdatedDate(LocalDateTime updatedDate) {
+        this.updatedDate = updatedDate;
     }
 }
