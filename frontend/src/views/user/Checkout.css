@@ -303,4 +303,19 @@
   .checkout-field-full {
     grid-column: auto;
   }
+  .checkout-alert-error {
+  margin-top: 22px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #fdeaea;
+  color: #c0392b;
+  font-weight: 700;
+}
+
+.checkout-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
 }

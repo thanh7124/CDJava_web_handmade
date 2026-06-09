@@ -1,32 +1,57 @@
 const API_URL = "http://localhost:8080/api";
 
-export const orderService = {
-  fetchMyOrders: async (token) => {
-    const response = await fetch(`${API_URL}/orders/my`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    if (!response.ok) {
-      throw new Error("Không thể tải đơn hàng");
-    }
-    const data = await response.json();
-    return data.result; // ApiResponse.result
-  },
-  
-  createOrder: async (orderData, token) => {
-    const response = await fetch(`${API_URL}/orders`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(orderData)
-    });
-    if (!response.ok) {
-      throw new Error("Không thể tạo đơn hàng");
-    }
-    const data = await response.json();
-    return data.result;
+function getAuthHeaders(token) {
+  return {
+    "Content-Type": "application/json",
+    Authorization: token ? `Bearer ${token}` : "",
+  };
+}
+
+async function handleResponse(response) {
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 200) {
+    throw new Error(data.message || "Có lỗi xảy ra khi xử lý đơn hàng");
   }
+
+  return data.result;
+}
+
+export async function checkoutApi(token, payload) {
+  const response = await fetch(`${API_URL}/orders/checkout`, {
+    method: "POST",
+    headers: getAuthHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response);
+}
+
+export async function fetchMyOrdersApi(token) {
+  const response = await fetch(`${API_URL}/orders/my`, {
+    method: "GET",
+    headers: getAuthHeaders(token),
+  });
+
+  return handleResponse(response);
+}
+
+export async function fetchOrderByIdApi(token, orderId) {
+  const response = await fetch(`${API_URL}/orders/${orderId}`, {
+    method: "GET",
+    headers: getAuthHeaders(token),
+  });
+
+  return handleResponse(response);
+}
+export const OrderService = {
+  fetchMyOrders: fetchMyOrdersApi,
+  fetchOrderById: fetchOrderByIdApi,
+  checkout: checkoutApi,
+};
+
+export const orderService = {
+  fetchMyOrders: fetchMyOrdersApi,
+  fetchOrderById: fetchOrderByIdApi,
+  checkout: checkoutApi,
 };

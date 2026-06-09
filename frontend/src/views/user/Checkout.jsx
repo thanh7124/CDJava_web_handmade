@@ -1,78 +1,173 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
-import { formatCurrency } from '../../services/product.service';
-import Header from '../../components/layout/Header';
-import Footer from '../../components/layout/Footer';
-import './Checkout.css';
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import { checkoutApi } from "../../services/order.service";
+import { formatCurrency } from "../../services/product.service";
+import Header from "../../components/layout/Header";
+import Footer from "../../components/layout/Footer";
+import "./Checkout.css";
 
 export default function Checkout() {
-  const { cartItems, subtotal, totalSavings, clearCart } = useCart();
-  const [billingInfo, setBillingInfo] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    note: '',
-  });
-  const [paymentMethod, setPaymentMethod] = useState('cod');
-  const [orderPlaced, setOrderPlaced] = useState(false);
-  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
-  const shippingFee = subtotal >= 500000 ? 0 : 30000;
+  const { user, isAuthenticated } = useAuth();
+  const { cartItems, totalItems, loadCart, loadingCart } = useCart();
+
+  const [billingInfo, setBillingInfo] = useState({
+    fullName: user?.fullName || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    address: "",
+    city: "",
+    note: "",
+  });
+
+  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [successOrder, setSuccessOrder] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    setBillingInfo((prev) => ({
+      ...prev,
+      fullName: prev.fullName || user?.fullName || "",
+      email: prev.email || user?.email || "",
+      phone: prev.phone || user?.phone || "",
+    }));
+  }, [user]);
+
+  const subtotal = useMemo(() => {
+    return cartItems.reduce((total, item) => {
+      return total + Number(item.price || 0) * Number(item.quantity || 0);
+    }, 0);
+  }, [cartItems]);
+
+  const totalSavings = useMemo(() => {
+    return cartItems.reduce((total, item) => {
+      if (!item.oldPrice) return total;
+
+      return (
+        total +
+        (Number(item.oldPrice) - Number(item.price || 0)) *
+          Number(item.quantity || 0)
+      );
+    }, 0);
+  }, [cartItems]);
+
+  const shippingFee = subtotal >= 500000 || subtotal === 0 ? 0 : 30000;
   const total = subtotal + shippingFee;
 
   const validate = () => {
     const nextErrors = {};
+
     if (!billingInfo.fullName.trim()) {
-      nextErrors.fullName = 'Nhập họ tên người nhận';
+      nextErrors.fullName = "Nhập họ tên người nhận";
     }
+
     if (!billingInfo.phone.trim()) {
-      nextErrors.phone = 'Nhập số điện thoại';
+      nextErrors.phone = "Nhập số điện thoại";
     }
+
     if (!billingInfo.address.trim()) {
-      nextErrors.address = 'Nhập địa chỉ giao hàng';
+      nextErrors.address = "Nhập địa chỉ giao hàng";
     }
+
     if (!billingInfo.city.trim()) {
-      nextErrors.city = 'Nhập thành phố / tỉnh';
+      nextErrors.city = "Nhập thành phố / tỉnh";
     }
+
+    if (cartItems.length === 0) {
+      nextErrors.cart = "Giỏ hàng đang trống";
+    }
+
     setErrors(nextErrors);
+
     return Object.keys(nextErrors).length === 0;
   };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setBillingInfo((prev) => ({ ...prev, [name]: value }));
+
+    setBillingInfo((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
+    setSubmitError("");
+
     if (cartItems.length === 0) {
-      navigate('/cart');
+      navigate("/cart");
       return;
     }
 
     if (!validate()) return;
 
-    setOrderPlaced(true);
-    clearCart();
+    try {
+      setSubmitting(true);
+
+      const fullAddress = `${billingInfo.address.trim()}, ${billingInfo.city.trim()}`;
+
+      const order = await checkoutApi(user.token, {
+        recipientName: billingInfo.fullName.trim(),
+        phone: billingInfo.phone.trim(),
+        address: fullAddress,
+        note: billingInfo.note.trim(),
+        paymentMethod,
+      });
+
+      setSuccessOrder(order);
+
+      await loadCart();
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Đặt hàng thất bại"
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (orderPlaced) {
+  if (successOrder) {
     return (
       <div className="checkout-page">
         <Header />
+
         <div className="checkout-confirmation">
           <h1>Đặt hàng thành công!</h1>
+
           <p>
-            Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn đang được xử lý và sẽ được
-            giao sớm nhất có thể.
+            Cảm ơn bạn đã đặt hàng. Đơn hàng #{successOrder.id} của bạn đang
+            được xử lý và sẽ được giao sớm nhất có thể.
           </p>
+
+          <p>
+            Tổng thanh toán:{" "}
+            <strong>{formatCurrency(successOrder.totalAmount)}</strong>
+          </p>
+
           <Link to="/" className="checkout-back-btn">
             Quay về trang chủ
           </Link>
+
+          <Link
+            to="/profile"
+            className="checkout-edit-cart"
+            style={{ marginTop: 12 }}
+          >
+            Xem tài khoản
+          </Link>
         </div>
+
         <Footer />
       </div>
     );
@@ -94,8 +189,18 @@ export default function Checkout() {
         <div className="checkout-form-card">
           <div className="checkout-section-header">
             <h2>Thông tin giao hàng</h2>
-            <p>Nhập thông tin để chúng tôi giao hàng nhanh chóng và chính xác.</p>
+            <p>
+              Nhập thông tin để chúng tôi giao hàng nhanh chóng và chính xác.
+            </p>
           </div>
+
+          {submitError && (
+            <div className="checkout-alert-error">{submitError}</div>
+          )}
+
+          {errors.cart && (
+            <div className="checkout-alert-error">{errors.cart}</div>
+          )}
 
           <div className="checkout-grid">
             <label className="checkout-field">
@@ -170,34 +275,37 @@ export default function Checkout() {
 
           <div className="checkout-payment-card">
             <h3>Phương thức thanh toán</h3>
+
             <div className="payment-options">
               <label className="payment-option">
                 <input
                   type="radio"
                   name="payment"
-                  value="cod"
-                  checked={paymentMethod === 'cod'}
-                  onChange={() => setPaymentMethod('cod')}
+                  value="COD"
+                  checked={paymentMethod === "COD"}
+                  onChange={() => setPaymentMethod("COD")}
                 />
                 <span>Thanh toán khi nhận hàng (COD)</span>
               </label>
+
               <label className="payment-option">
                 <input
                   type="radio"
                   name="payment"
-                  value="card"
-                  checked={paymentMethod === 'card'}
-                  onChange={() => setPaymentMethod('card')}
+                  value="CARD"
+                  checked={paymentMethod === "CARD"}
+                  onChange={() => setPaymentMethod("CARD")}
                 />
                 <span>Thẻ nội địa / quốc tế</span>
               </label>
+
               <label className="payment-option">
                 <input
                   type="radio"
                   name="payment"
-                  value="momo"
-                  checked={paymentMethod === 'momo'}
-                  onChange={() => setPaymentMethod('momo')}
+                  value="BANK_TRANSFER"
+                  checked={paymentMethod === "BANK_TRANSFER"}
+                  onChange={() => setPaymentMethod("BANK_TRANSFER")}
                 />
                 <span>Ví điện tử / Chuyển khoản</span>
               </label>
@@ -208,35 +316,52 @@ export default function Checkout() {
         <aside className="checkout-summary-card">
           <div className="summary-header">
             <h2>Đơn hàng của bạn</h2>
-            <span>{cartItems.length} sản phẩm</span>
+            <span>{totalItems || cartItems.length} sản phẩm</span>
           </div>
 
-          <div className="summary-items">
-            {cartItems.map((item) => (
-              <div key={item.productId} className="summary-item">
-                <div className="summary-item-info">
-                  <span>{item.product.name}</span>
-                  <small>x{item.quantity}</small>
-                </div>
-                <strong>{formatCurrency(item.product.price * item.quantity)}</strong>
-              </div>
-            ))}
-          </div>
+          {loadingCart ? (
+            <p>Đang tải giỏ hàng...</p>
+          ) : (
+            <div className="summary-items">
+              {cartItems.length === 0 ? (
+                <p>Giỏ hàng đang trống.</p>
+              ) : (
+                cartItems.map((item) => (
+                  <div key={item.id} className="summary-item">
+                    <div className="summary-item-info">
+                      <span>{item.name}</span>
+                      <small>x{item.quantity}</small>
+                    </div>
+
+                    <strong>
+                      {formatCurrency(
+                        Number(item.price || 0) * Number(item.quantity || 0)
+                      )}
+                    </strong>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
 
           <div className="summary-lines">
             <div className="summary-line">
               <span>Tạm tính</span>
               <strong>{formatCurrency(subtotal)}</strong>
             </div>
+
             {totalSavings > 0 && (
               <div className="summary-line savings">
                 <span>Tiết kiệm</span>
                 <strong>-{formatCurrency(totalSavings)}</strong>
               </div>
             )}
+
             <div className="summary-line">
               <span>Phí vận chuyển</span>
-              <strong>{shippingFee === 0 ? 'Miễn phí' : formatCurrency(shippingFee)}</strong>
+              <strong>
+                {shippingFee === 0 ? "Miễn phí" : formatCurrency(shippingFee)}
+              </strong>
             </div>
           </div>
 
@@ -249,9 +374,9 @@ export default function Checkout() {
             className="checkout-submit-btn"
             type="button"
             onClick={handlePlaceOrder}
-            disabled={cartItems.length === 0}
+            disabled={cartItems.length === 0 || submitting}
           >
-            Hoàn tất đặt hàng
+            {submitting ? "Đang đặt hàng..." : "Hoàn tất đặt hàng"}
           </button>
 
           <Link to="/cart" className="checkout-edit-cart">
