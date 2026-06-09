@@ -1,71 +1,48 @@
-package com.handmade.entity;
+package com.handmade.dto;
 
-import jakarta.persistence.*;
+import com.handmade.entity.Order;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "orders")
-public class Order {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class OrderResponse {
     private Long id;
-
     private String recipientName;
-
     private String phone;
-
-    @Column(columnDefinition = "TEXT")
     private String address;
-
-    @Column(columnDefinition = "TEXT")
     private String note;
-
     private String paymentMethod;
-
     private String status;
-
     private BigDecimal subtotal;
-
     private BigDecimal shippingFee;
-
     private BigDecimal totalAmount;
-
-    @Column(name = "created_date")
     private LocalDateTime createdDate;
+    private List<OrderItemResponse> items;
 
-    @Column(name = "updated_date")
-    private LocalDateTime updatedDate;
+    public static OrderResponse from(Order order) {
+        OrderResponse response = new OrderResponse();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+        response.setId(order.getId());
+        response.setRecipientName(order.getRecipientName());
+        response.setPhone(order.getPhone());
+        response.setAddress(order.getAddress());
+        response.setNote(order.getNote());
+        response.setPaymentMethod(order.getPaymentMethod());
+        response.setStatus(order.getStatus());
+        response.setSubtotal(order.getSubtotal());
+        response.setShippingFee(order.getShippingFee());
+        response.setTotalAmount(order.getTotalAmount());
+        response.setCreatedDate(order.getCreatedDate());
 
-    @OneToMany(
-            mappedBy = "order",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<OrderItem> items = new ArrayList<>();
+        response.setItems(
+                order.getItems()
+                        .stream()
+                        .map(OrderItemResponse::from)
+                        .toList()
+        );
 
-    @PrePersist
-    public void prePersist() {
-        createdDate = LocalDateTime.now();
-        updatedDate = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedDate = LocalDateTime.now();
-    }
-
-    public void addItem(OrderItem item) {
-        items.add(item);
-        item.setOrder(this);
+        return response;
     }
 
     public Long getId() {
@@ -112,15 +89,7 @@ public class Order {
         return createdDate;
     }
 
-    public LocalDateTime getUpdatedDate() {
-        return updatedDate;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public List<OrderItem> getItems() {
+    public List<OrderItemResponse> getItems() {
         return items;
     }
 
@@ -168,15 +137,7 @@ public class Order {
         this.createdDate = createdDate;
     }
 
-    public void setUpdatedDate(LocalDateTime updatedDate) {
-        this.updatedDate = updatedDate;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public void setItems(List<OrderItem> items) {
+    public void setItems(List<OrderItemResponse> items) {
         this.items = items;
     }
 }
