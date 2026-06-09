@@ -546,8 +546,7 @@
     font-size: 36px;
   }
 
-  .promo-banner,
-  .product-section-top {
+  .promo-banner {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -589,7 +588,9 @@
     padding-top: 58px;
   }
 
-  .shopping-guide-list,
+  .shopping-guide-list {
+  grid-template-columns: 1fr;
+  }
 
   .section-heading h2 {
     font-size: 30px;
