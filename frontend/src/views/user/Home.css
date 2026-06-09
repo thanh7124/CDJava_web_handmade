@@ -253,8 +253,6 @@
 }
 
 /* ================= SECTION HEADING ================= */
-
-.product-section,
 .shopping-guide-section,
 .testimonial-section {
   padding: 78px var(--page-padding) 0;
@@ -277,43 +275,6 @@
 
 .section-heading.center {
   text-align: center;
-}
-
-/* ================= PRODUCT SECTION ================= */
-
-.product-section-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 24px;
-}
-
-.view-all {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--primary-color);
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.product-grid {
-  margin-top: 34px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 26px;
-}
-
-.product-section-empty {
-  margin-top: 34px;
-  padding: 42px 24px;
-  text-align: center;
-  color: var(--muted-color);
-  font-weight: 700;
-  background: white;
-  border: 1px solid var(--border-color);
-  border-radius: 24px;
-  box-shadow: 0 12px 32px rgba(78, 48, 30, 0.06);
 }
 
 /* ================= HOME API STATES ================= */
@@ -540,9 +501,6 @@
     gap: 48px;
   }
 
-  .product-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
 
   .shopping-guide-list {
     grid-template-columns: repeat(2, 1fr);
@@ -561,10 +519,6 @@
 
   .trust-section {
     grid-template-columns: 1fr;
-  }
-
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr);
   }
 
   .testimonial-list {
@@ -592,7 +546,6 @@
     font-size: 36px;
   }
 
-  .hero-buttons,
   .promo-banner,
   .product-section-top {
     flex-direction: column;
@@ -631,17 +584,12 @@
     width: calc(100% - 40px);
   }
 
-  .category-section,
-  .product-section,
   .shopping-guide-section,
   .testimonial-section {
     padding-top: 58px;
   }
 
   .shopping-guide-list,
-  .product-grid {
-    grid-template-columns: 1fr;
-  }
 
   .section-heading h2 {
     font-size: 30px;

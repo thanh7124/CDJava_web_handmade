@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 import SectionHeading from "../common/SectionHeading";
 import ProductCard from "../product/ProductCard";
+import "./ProductSection.css";
 
 function ProductSection({
   label,
