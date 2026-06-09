@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import SectionHeading from "../common/SectionHeading";
+import "./CategorySection.css";
 
 const categoryImages = {
   "Phụ kiện":
