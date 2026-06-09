@@ -1,5 +1,6 @@
 import { Star, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import "./ProductCard.css";
 import { formatCurrency } from "../../services/product.service";
 import { useFavorite } from "../../context/FavoriteContext";
 
