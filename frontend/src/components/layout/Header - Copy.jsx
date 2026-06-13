@@ -214,60 +214,72 @@ function Header() {
       </nav>
 
       <div className="nav-actions">
-{/* THANH TÌM KIẾM LUÔN HIỆN SẴN */}
-<div className="header-search-container" ref={searchRef}>
-  <form onSubmit={handleSearchSubmit} className="header-search-form">
-    <input
-      type="text"
-      placeholder="Tìm sản phẩm handmade..."
-      value={searchKey}
-      onChange={(e) => {
-        setSearchKey(e.target.value);
-        setShowSuggest(true);
-      }}
-      onFocus={() => setShowSuggest(true)}
-    />
-    <button type="submit" aria-label="Tìm kiếm">
-      <Search size={16} />
-    </button>
-  </form>
-
-  {/* Hộp xổ xuống hiển thị đề xuất/gợi ý sản phẩm nhanh */}
-  {showSuggest && searchKey.trim() && (
-    <div className="search-suggestions-dropdown">
-      {searchLoading ? (
-        <div className="suggestion-state">Đang tìm kiếm...</div>
-      ) : suggestions.length > 0 ? (
-        <>
-          <div className="suggestion-title">Sản phẩm gợi ý</div>
-          {suggestions.map((product) => (
-            <Link
-              to={`/products/${product.id}`}
-              key={product.id}
-              className="suggestion-item"
-              onClick={() => setShowSuggest(false)}
+        {/* THANH TÌM KIẾM MỚI THAY THẾ CHO NÚT LINK CŨ */}
+        <div className="header-search-container" ref={searchRef}>
+          {!isSearchExpanded ? (
+            <button
+              type="button"
+              className="nav-action-btn"
+              aria-label="Tìm kiếm"
+              onClick={() => setIsSearchExpanded(true)}
             >
-              {product.image && (
-                <img src={product.image} alt={product.name} className="suggestion-img" />
+              <Search size={20} />
+            </button>
+          ) : (
+            <form onSubmit={handleSearchSubmit} className="header-search-form expanded">
+              <input
+                type="text"
+                placeholder="Tìm sản phẩm handmade..."
+                value={searchKey}
+                onChange={(e) => {
+                  setSearchKey(e.target.value);
+                  setShowSuggest(true);
+                }}
+                onFocus={() => setShowSuggest(true)}
+                autoFocus
+              />
+              <button type="submit" aria-label="Tìm kiếm">
+                <Search size={15} />
+              </button>
+            </form>
+          )}
+
+          {/* Hộp xổ xuống hiển thị đề xuất/gợi ý sản phẩm nhanh */}
+          {showSuggest && searchKey.trim() && (
+            <div className="search-suggestions-dropdown">
+              {searchLoading ? (
+                <div className="suggestion-state">Đang tìm kiếm...</div>
+              ) : suggestions.length > 0 ? (
+                <>
+                  <div className="suggestion-title">Sản phẩm gợi ý</div>
+                  {suggestions.map((product) => (
+                    <Link
+                      to={`/products/${product.id}`}
+                      key={product.id}
+                      className="suggestion-item"
+                      onClick={() => setShowSuggest(false)}
+                    >
+                      {product.image && (
+                        <img src={product.image} alt={product.name} className="suggestion-img" />
+                      )}
+                      <div className="suggestion-info">
+                        <span className="suggestion-name">{product.name}</span>
+                        <span className="suggestion-price">
+                          {product.price?.toLocaleString("vi-VN")}đ
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                  <div className="suggestion-footer" onClick={handleSearchSubmit}>
+                    Xem tất cả kết quả cho "{searchKey}"
+                  </div>
+                </>
+              ) : (
+                <div className="suggestion-state">Không tìm thấy sản phẩm nào</div>
               )}
-              <div className="suggestion-info">
-                <span className="suggestion-name">{product.name}</span>
-                <span className="suggestion-price">
-                  {product.price?.toLocaleString("vi-VN")}đ
-                </span>
-              </div>
-            </Link>
-          ))}
-          <div className="suggestion-footer" onClick={handleSearchSubmit}>
-            Xem tất cả kết quả cho "{searchKey}"
-          </div>
-        </>
-      ) : (
-        <div className="suggestion-state">Không tìm thấy sản phẩm nào</div>
-      )}
-    </div>
-  )}
-</div>
+            </div>
+          )}
+        </div>
 
         <button
           type="button"

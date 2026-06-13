@@ -88,6 +88,23 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    @org.springframework.transaction.annotation.Transactional
+    public UserResponse updateProfile(String email, String fullName, String phone, String address) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            user.setFullName(fullName.trim());
+        }
+
+        user.setPhone(phone);
+        user.setAddress(address);
+
+        User savedUser = userRepository.save(user);
+        return UserResponse.from(savedUser);
+    }
+
+
     private void validateRegisterRequest(RegisterRequest request) {
         if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
             throw new RuntimeException("Họ tên không được để trống");

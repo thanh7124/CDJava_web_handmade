@@ -1,49 +1,30 @@
-const LS_KEY = "hm_favorites";
+import axios from "axios";
 
-export function getFavoriteIds() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch (e) {
-    return [];
-  }
+const API_URL = "http://localhost:8080/api/favorites";
+
+async function getFavoriteIds(userId) {
+
+    const response = await axios.get(
+        `${API_URL}/${userId}`
+    );
+
+    return response.data;
 }
 
-export function isFavorite(id) {
-  const ids = getFavoriteIds();
-  return ids.includes(Number(id));
-}
+async function toggleFavorite(userId, productId) {
 
-export function toggleFavorite(id) {
-  const ids = getFavoriteIds();
-  const nid = Number(id);
+    await axios.post(
+        `${API_URL}/toggle`,
+        {
+            userId,
+            productId
+        }
+    );
 
-  const idx = ids.indexOf(nid);
-  if (idx === -1) {
-    ids.push(nid);
-  } else {
-    ids.splice(idx, 1);
-  }
-
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify(ids));
-  } catch (e) {
-    // ignore
-  }
-
-  return ids;
-}
-
-export function clearFavorites() {
-  try {
-    localStorage.removeItem(LS_KEY);
-  } catch (e) {}
+    return getFavoriteIds(userId);
 }
 
 export default {
-  getFavoriteIds,
-  isFavorite,
-  toggleFavorite,
-  clearFavorites,
+    getFavoriteIds,
+    toggleFavorite
 };

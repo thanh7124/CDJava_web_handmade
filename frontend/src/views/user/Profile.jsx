@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorite } from "../../context/FavoriteContext";
 import { useCart } from "../../context/CartContext";
 import { fetchProductById, formatCurrency } from "../../services/product.service";
 import { orderService } from "../../services/order.service";
 import { changePasswordApi } from "../../services/auth.service";
+import { getAddresses, addAddress, deleteAddress, setDefaultAddress } from "../../services/address.service";
 import ProductCard from "../../components/product/ProductCard";
 
 import Header from "../../components/layout/Header";
@@ -18,16 +19,24 @@ function Profile() {
   const { favoriteIds } = useFavorite();
   const { cartItems, cartTotal } = useCart();
   const navigate = useNavigate();
-  
+  const location = useLocation();
+
   // State quản lý Tab đang hoạt động
-  const [activeTab, setActiveTab] = useState("info");
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || "info");
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
 
   // State cho thông tin cá nhân
   const [editMode, setEditMode] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.phone || "");
   const [orderFilter, setOrderFilter] = useState("all");
-  
+
   // State chung cho thông báo
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState("success");
@@ -47,6 +56,17 @@ function Profile() {
   const [pwdMessage, setPwdMessage] = useState(null);
   const [pwdMessageType, setPwdMessageType] = useState("success");
 
+  // State cho địa chỉ giao hàng (DB-backed)
+  const [addressesList, setAddressesList] = useState([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newRecipientName, setNewRecipientName] = useState("");
+  const [newAddrPhone, setNewAddrPhone] = useState("");
+  const [newDetail, setNewDetail] = useState("");
+  const [newIsDefault, setNewIsDefault] = useState(false);
+  const [addrMessage, setAddrMessage] = useState(null);
+  const [addrMessageType, setAddrMessageType] = useState("success");
+
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -57,6 +77,7 @@ function Profile() {
     if (user) {
       setFullName(user.fullName);
       setEmail(user.email);
+      setPhone(user.phone || "");
     }
   }, [user]);
 
@@ -96,15 +117,30 @@ function Profile() {
     loadOrders();
   }, [activeTab, user]);
 
-  const handleSave = (event) => {
+  useEffect(() => {
+    async function loadAddresses() {
+      if (activeTab === "addresses" && user?.token) {
+        setLoadingAddresses(true);
+        try {
+          const data = await getAddresses(user.token);
+          setAddressesList(data || []);
+        } catch (error) {
+          console.error("Lỗi tải địa chỉ:", error);
+        } finally {
+          setLoadingAddresses(false);
+        }
+      }
+    }
+    loadAddresses();
+  }, [activeTab, user]);
+
+  const handleSave = async (event) => {
     event.preventDefault();
     setMessage(null);
-
     try {
-      updateUserProfile({
-        id: user.id,
+      await updateUserProfile({
         fullName: fullName.trim(),
-        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
       });
       setEditMode(false);
       setMessage("Cập nhật thông tin thành công.");
@@ -112,6 +148,61 @@ function Profile() {
     } catch (error) {
       setMessage(error.message || "Không thể cập nhật thông tin.");
       setMessageType("error");
+    }
+  };
+
+  const handleAddAddress = async (e) => {
+    e.preventDefault();
+    setAddrMessage(null);
+    try {
+      const created = await addAddress(user.token, {
+        recipientName: newRecipientName.trim(),
+        phone: newAddrPhone.trim(),
+        address: newDetail.trim(),
+        isDefault: newIsDefault,
+      });
+      // Nếu địa chỉ mới là mặc định, cập nhật lại toàn bộ list từ server
+      const fresh = await getAddresses(user.token);
+      setAddressesList(fresh);
+      setShowAddForm(false);
+      setNewRecipientName("");
+      setNewAddrPhone("");
+      setNewDetail("");
+      setNewIsDefault(false);
+      setAddrMessage("Thêm địa chỉ thành công");
+      setAddrMessageType("success");
+    } catch (err) {
+      setAddrMessage(err.message || "Lỗi khi thêm địa chỉ");
+      setAddrMessageType("error");
+    }
+  };
+
+  const handleDeleteAddress = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) return;
+    setAddrMessage(null);
+    try {
+      await deleteAddress(user.token, id);
+      const fresh = await getAddresses(user.token);
+      setAddressesList(fresh);
+      setAddrMessage("Xóa địa chỉ thành công");
+      setAddrMessageType("success");
+    } catch (err) {
+      setAddrMessage(err.message || "Lỗi khi xóa địa chỉ");
+      setAddrMessageType("error");
+    }
+  };
+
+  const handleSetDefaultAddress = async (id) => {
+    setAddrMessage(null);
+    try {
+      await setDefaultAddress(user.token, id);
+      const fresh = await getAddresses(user.token);
+      setAddressesList(fresh);
+      setAddrMessage("Đặt địa chỉ mặc định thành công");
+      setAddrMessageType("success");
+    } catch (err) {
+      setAddrMessage(err.message || "Lỗi khi đặt mặc định");
+      setAddrMessageType("error");
     }
   };
 
@@ -191,8 +282,18 @@ function Profile() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  disabled
+                />
+              </div>
+
+              <div className="profile-field">
+                <label>Số điện thoại</label>
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   disabled={!editMode}
+                  placeholder="Nhập số điện thoại"
                 />
               </div>
 
@@ -233,7 +334,7 @@ function Profile() {
           cancelled: "Bạn chưa có đơn hàng đã hủy.",
         };
 
-        const filteredOrders = orders.filter(o => 
+        const filteredOrders = orders.filter(o =>
           orderFilter === "all" ? true : o.status?.toLowerCase() === orderFilter.toLowerCase()
         );
 
@@ -288,7 +389,7 @@ function Profile() {
         return (
           <div className="profile-card padding-box">
             <h2>Sản phẩm yêu thích ({favoriteIds.length})</h2>
-            
+
             {loadingFavs ? (
               <div className="empty-state">
                 <p>Đang tải danh sách yêu thích...</p>
@@ -380,21 +481,125 @@ function Profile() {
       case "addresses":
         return (
           <div className="profile-card padding-box">
-            <div className="flex-header">
-              <h2>Địa chỉ giao hàng</h2>
-              <button className="btn btn-secondary btn-sm">+ Thêm địa chỉ mới</button>
+            <div className="flex-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h2>Địa chỉ giao hàng ({addressesList.length})</h2>
+              {!showAddForm && (
+                <button className="btn btn-secondary btn-sm" onClick={() => { setShowAddForm(true); setAddrMessage(null); }}>
+                  + Thêm địa chỉ mới
+                </button>
+              )}
             </div>
-            <div className="address-list">
-              <div className="address-item default">
-                <div className="address-badge">Mặc định</div>
-                <p><strong>{user.fullName}</strong> | 0901234567</p>
-                <p>Số 123 Đường ABC, Phường 5, Quận 1, TP. Hồ Chí Minh</p>
+
+            {addrMessage && (
+              <div className={`profile-message ${addrMessageType}`} style={{ marginBottom: 14 }}>{addrMessage}</div>
+            )}
+
+            {showAddForm && (
+              <form onSubmit={handleAddAddress} style={{ border: "1px solid #e0e0e0", borderRadius: 10, padding: 18, marginBottom: 20, background: "#f7f9ff" }}>
+                <h3 style={{ marginBottom: 12, fontSize: "1rem", fontWeight: 600 }}>Thêm địa chỉ mới</h3>
+
+                <div className="profile-field">
+                  <label>Họ tên người nhận *</label>
+                  <input
+                    type="text"
+                    value={newRecipientName}
+                    onChange={(e) => setNewRecipientName(e.target.value)}
+                    placeholder="Nguyễn Văn A"
+                    required
+                  />
+                </div>
+
+                <div className="profile-field">
+                  <label>Số điện thoại *</label>
+                  <input
+                    type="text"
+                    value={newAddrPhone}
+                    onChange={(e) => setNewAddrPhone(e.target.value)}
+                    placeholder="0901234567"
+                    required
+                  />
+                </div>
+
+                <div className="profile-field">
+                  <label>Địa chỉ chi tiết *</label>
+                  <input
+                    type="text"
+                    value={newDetail}
+                    onChange={(e) => setNewDetail(e.target.value)}
+                    placeholder="Số 123 Đường ABC, Phường X, Quận Y, Tỉnh Z"
+                    required
+                  />
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                  <input
+                    id="addr-is-default"
+                    type="checkbox"
+                    checked={newIsDefault}
+                    onChange={(e) => setNewIsDefault(e.target.checked)}
+                  />
+                  <label htmlFor="addr-is-default" style={{ cursor: "pointer", fontSize: "0.95rem" }}>Đặt làm địa chỉ mặc định</label>
+                </div>
+
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button type="submit" className="btn btn-primary">Lưu địa chỉ</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => { setShowAddForm(false); setAddrMessage(null); }}>Hủy</button>
+                </div>
+              </form>
+            )}
+
+            {loadingAddresses ? (
+              <p style={{ color: "#888" }}>Đang tải địa chỉ...</p>
+            ) : addressesList.length === 0 ? (
+              <div className="empty-state"><p>Bạn chưa có địa chỉ giao hàng nào.</p></div>
+            ) : (
+              <div className="address-list" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {addressesList.map((addr) => (
+                  <div
+                    key={addr.id}
+                    className={`address-item${addr.isDefault ? " default" : ""}`}
+                    style={{
+                      border: addr.isDefault ? "2px solid #0056b3" : "1px solid #eaeaea",
+                      borderRadius: 12,
+                      padding: 16,
+                      position: "relative",
+                      background: addr.isDefault ? "#f0f7ff" : "#fff",
+                    }}
+                  >
+                    {addr.isDefault && (
+                      <div className="address-badge" style={{
+                        position: "absolute", top: 12, right: 12,
+                        background: "#0056b3", color: "#fff",
+                        padding: "2px 10px", borderRadius: 4,
+                        fontSize: "0.8rem", fontWeight: 700,
+                      }}>Mặc định</div>
+                    )}
+                    <p style={{ margin: "0 0 6px", fontWeight: 600 }}>
+                      {addr.recipientName} | {addr.phone}
+                    </p>
+                    <p style={{ margin: "0 0 12px", color: "#555", fontSize: "0.93rem" }}>{addr.address}</p>
+                    <div style={{ display: "flex", gap: 18, fontSize: "0.9rem" }}>
+                      {!addr.isDefault && (
+                        <button
+                          type="button"
+                          style={{ background: "none", border: "none", color: "#0056b3", cursor: "pointer", padding: 0, textDecoration: "underline" }}
+                          onClick={() => handleSetDefaultAddress(addr.id)}
+                        >
+                          Thiết lập mặc định
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        style={{ background: "none", border: "none", color: "#dc3545", cursor: "pointer", padding: 0, textDecoration: "underline" }}
+                        onClick={() => handleDeleteAddress(addr.id)}
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="address-item">
-                <p><strong>{user.fullName}</strong> | 0987654321</p>
-                <p>Ký túc xá Đại học X, Đường Y, Thành phố Thủ Đức, TP. Hồ Chí Minh</p>
-              </div>
-            </div>
+            )}
           </div>
         );
 
@@ -405,9 +610,9 @@ function Profile() {
             <form className="profile-form no-padding" onSubmit={handlePasswordChange}>
               <div className="profile-field">
                 <label>Mật khẩu hiện tại</label>
-                <input 
-                  type="password" 
-                  placeholder="Nhập mật khẩu cũ" 
+                <input
+                  type="password"
+                  placeholder="Nhập mật khẩu cũ"
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
                   required
@@ -415,9 +620,9 @@ function Profile() {
               </div>
               <div className="profile-field">
                 <label>Mật khẩu mới</label>
-                <input 
-                  type="password" 
-                  placeholder="Nhập mật khẩu mới" 
+                <input
+                  type="password"
+                  placeholder="Nhập mật khẩu mới"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
@@ -426,9 +631,9 @@ function Profile() {
               </div>
               <div className="profile-field">
                 <label>Xác nhận mật khẩu mới</label>
-                <input 
-                  type="password" 
-                  placeholder="Nhập lại mật khẩu mới" 
+                <input
+                  type="password"
+                  placeholder="Nhập lại mật khẩu mới"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -454,9 +659,9 @@ function Profile() {
               </p>
               <div className="danger-zone">
                 <h4>Vùng nguy hiểm</h4>
-                <button 
-                  type="button" 
-                  className="btn btn-danger" 
+                <button
+                  type="button"
+                  className="btn btn-danger"
                   onClick={() => alert("Hệ thống đã ghi nhận yêu cầu xóa tài khoản của bạn. Chúng tôi sẽ liên hệ xác nhận qua Email trong vòng 24h.")}
                 >
                   Yêu cầu xóa tài khoản
@@ -476,7 +681,7 @@ function Profile() {
       <Header />
       <main className="profile-main">
         <div className="profile-layout-container">
-          
+
           {/* SIDEBAR ĐIỀU HƯỚNG */}
           <aside className="profile-sidebar">
             <div className="sidebar-user-info">
@@ -486,45 +691,45 @@ function Profile() {
                 <h3 className="sidebar-name">{user.fullName}</h3>
               </div>
             </div>
-            
+
             <nav className="sidebar-menu">
-              <button 
+              <button
                 className={`sidebar-link ${activeTab === "info" ? "active" : ""}`}
                 onClick={() => setActiveTab("info")}
               >
                 Thông tin cá nhân
               </button>
-              <button 
+              <button
                 className={`sidebar-link ${activeTab === "orders" ? "active" : ""}`}
                 onClick={() => setActiveTab("orders")}
               >
                 Đơn mua của tôi
               </button>
-              <button 
+              <button
                 className={`sidebar-link ${activeTab === "wishlist" ? "active" : ""}`}
                 onClick={() => setActiveTab("wishlist")}
               >
                 Sản phẩm yêu thích
               </button>
-              <button 
+              <button
                 className={`sidebar-link ${activeTab === "cart" ? "active" : ""}`}
                 onClick={() => setActiveTab("cart")}
               >
                 Giỏ hàng
               </button>
-              <button 
+              <button
                 className={`sidebar-link ${activeTab === "addresses" ? "active" : ""}`}
                 onClick={() => setActiveTab("addresses")}
               >
                 Địa chỉ nhận hàng
               </button>
-              <button 
+              <button
                 className={`sidebar-link ${activeTab === "password" ? "active" : ""}`}
                 onClick={() => setActiveTab("password")}
               >
                 Đổi mật khẩu
               </button>
-              <button 
+              <button
                 className={`sidebar-link ${activeTab === "privacy" ? "active" : ""}`}
                 onClick={() => setActiveTab("privacy")}
               >
@@ -533,7 +738,7 @@ function Profile() {
             </nav>
 
             <hr className="sidebar-divider" />
-            
+
             <button type="button" className="btn btn-secondary logout-btn" onClick={handleLogout}>
               Đăng xuất
             </button>

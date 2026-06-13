@@ -1,8 +1,18 @@
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Đẩy Logo - Menu - Actions ra 3 phần tách biệt */
+  padding: 0 24px;
+  height: 70px;
+  background: white;
+  position: relative;
+}
 .account-menu {
   position: relative;
 }
 
-.account-menu > button {
+.account-menu>button {
   width: 40px;
   height: 40px;
   border: none;
@@ -15,7 +25,7 @@
   transition: 0.2s ease;
 }
 
-.account-menu > button:hover {
+.account-menu>button:hover {
   background: var(--primary-color);
   color: white;
 }
@@ -122,5 +132,205 @@
   .account-dropdown {
     right: -6px;
     width: 210px;
+  }
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  margin-right: auto;    /* Đẩy toàn bộ menu sát về bên trái, cạnh Logo */
+  padding-left: 40px;    /* Tạo khoảng cách an toàn với Logo */
+}
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;            /* Khoảng cách giữa thanh Search và các icon Heart, Cart, User */
+  flex-shrink: 0;       /* Không cho phép cụm này bị bóp nghẹt khi thu nhỏ màn hình */
+}
+/* ================= THANH TÌM KIẾM HÌNH CHỮ NHẬT CỐ ĐỊNH ================= */
+.header-search-container {
+  position: relative;
+  width: 280px;         /* Đặt chiều cao/rộng cố định vừa vặn, gọn gàng */
+}
+
+.header-search-form {
+  display: flex;
+  align-items: center;
+  background: #f4e4d6;  /* Màu nền nhẹ đồng bộ */
+  border-radius: 6px;   /* Bo góc dạng hình chữ nhật hiện đại */
+  height: 40px;
+  width: 100%;
+  padding: 0 6px 0 12px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.header-search-form:focus-within {
+  background: white;
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(78, 48, 30, 0.08);
+}
+
+.header-search-form input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-color);
+  width: 100%;
+  height: 100%;
+}
+
+.header-search-form button {
+  background: transparent;
+  border: none;
+  color: #5b3a29;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;   /* Đồng bộ góc vuông với thanh search */
+  transition: 0.2s ease;
+  padding: 0;
+}
+
+.header-search-form button:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Dropdown gợi ý */
+.search-suggestions-dropdown {
+  position: absolute;
+  top: 46px;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(78, 48, 30, 0.14);
+  z-index: 1010;
+  overflow: hidden;
+}
+
+/* ================= RESPONSIVE CHO MÀN HÌNH NHỎ ================= */
+@media (max-width: 1024px) {
+  .header-search-container {
+    width: 200px; /* Thu nhỏ thanh search lại một chút trên máy tính bảng */
+  }
+  .nav-links {
+    gap: 16px;    /* Thu hẹp khoảng cách menu */
+    padding-left: 20px;
+  }
+}
+
+/* Dropdown danh sách gợi ý đề xuất sản phẩm */
+.search-suggestions-dropdown {
+  position: absolute;
+  top: 46px;
+  left: 0;
+  right: auto;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--border-color);
+  /* Đổi bo góc dropdown thành 8px cho đồng bộ với thanh tìm kiếm chữ nhật */
+  border-radius: 8px; 
+  box-shadow: 0 12px 32px rgba(78, 48, 30, 0.14);
+  z-index: 1010;
+  overflow: hidden;
+}
+
+.suggestion-title {
+  padding: 10px 14px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #f8ede3;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  text-decoration: none;
+  color: var(--text-color);
+  transition: 0.2s ease;
+  border-bottom: 1px solid #fdf8f4;
+}
+
+.suggestion-item:hover {
+  background: #fff4e9;
+}
+
+.suggestion-img {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #f4e4d6;
+}
+
+.suggestion-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.suggestion-name {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-price {
+  font-size: 12px;
+  color: var(--primary-color);
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.suggestion-footer {
+  padding: 10px 12px;
+  text-align: center;
+  background: #fffaf4;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary-color);
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.suggestion-footer:hover {
+  background: #f4e4d6;
+}
+
+.suggestion-state {
+  padding: 16px;
+  text-align: center;
+  color: var(--muted-color);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .header-search-container {
+    width: 260px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-search-container {
+    width: 160px;
   }
 }

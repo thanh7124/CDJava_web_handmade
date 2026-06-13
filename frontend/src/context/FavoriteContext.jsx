@@ -1,31 +1,57 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useOptionalAuth } from "./AuthContext";
 import favoriteService from "../services/favorite.service";
 
 const FavoriteContext = createContext(null);
 
 export function FavoriteProvider({ children }) {
-  const [favoriteIds, setFavoriteIds] = useState(() => favoriteService.getFavoriteIds());
+  const auth = useOptionalAuth();
+  const user = auth?.user;
+  const [favoriteIds, setFavoriteIds] = useState([]);
 
-  const totalFavorites = favoriteIds.length;
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const ids = await favoriteService.getFavoriteIds(user.id);
+        setFavoriteIds(ids);
+      } catch (error) {
+        console.error("Lỗi khi tải sản phẩm yêu thích:", error);
+      }
+    };
 
-  function toggleFavorite(id) {
-    const updatedIds = favoriteService.toggleFavorite(id);
-    setFavoriteIds([...updatedIds]);
-  }
+    if (user && user.id) {
+      loadFavorites();
+    } else {
+      setFavoriteIds([]);
+    }
+  }, [user]);
 
-  function isFavorite(id) {
-    return favoriteIds.includes(Number(id));
-  }
+  const toggleFavorite = async (productId) => {
+    if (!user) {
+      alert("Vui lòng đăng nhập");
+      return;
+    }
 
-  const value = useMemo(
-    () => ({
-      favoriteIds,
-      totalFavorites,
-      toggleFavorite,
-      isFavorite,
-    }),
-    [favoriteIds]
-  );
+    try {
+      const updatedIds = await favoriteService.toggleFavorite(
+        user.id,
+        productId
+      );
+      setFavoriteIds(updatedIds);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const isFavorite = (productId) => {
+    return favoriteIds.includes(productId);
+  };
+
+  const value = {
+    favoriteIds,
+    toggleFavorite,
+    isFavorite,
+  };
 
   return (
     <FavoriteContext.Provider value={value}>
@@ -41,3 +67,4 @@ export function useFavorite() {
   }
   return context;
 }
+

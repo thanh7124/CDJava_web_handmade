@@ -111,3 +111,16 @@ export async function changePasswordApi(token, payload) {
 
   return handleResponse(response);
 }
+
+export async function updateProfileApi(token, payload) {
+  const response = await fetch(`${API_URL}/auth/profile`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response);
+}
