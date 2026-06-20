@@ -21,7 +21,7 @@ function Profile() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // State quản lý Tab đang hoạt động
+
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || "info");
 
   useEffect(() => {
@@ -30,33 +30,33 @@ function Profile() {
     }
   }, [location.state]);
 
-  // State cho thông tin cá nhân
+
   const [editMode, setEditMode] = useState(false);
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [orderFilter, setOrderFilter] = useState("all");
 
-  // State chung cho thông báo
+
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState("success");
 
-  // State cho wishlist
+
   const [favProducts, setFavProducts] = useState([]);
   const [loadingFavs, setLoadingFavs] = useState(false);
 
-  // State cho orders
+
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
-  // State cho password
+
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwdMessage, setPwdMessage] = useState(null);
   const [pwdMessageType, setPwdMessageType] = useState("success");
 
-  // State cho địa chỉ giao hàng (DB-backed)
+
   const [addressesList, setAddressesList] = useState([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -161,7 +161,7 @@ function Profile() {
         address: newDetail.trim(),
         isDefault: newIsDefault,
       });
-      // Nếu địa chỉ mới là mặc định, cập nhật lại toàn bộ list từ server
+    
       const fresh = await getAddresses(user.token);
       setAddressesList(fresh);
       setShowAddForm(false);
@@ -242,7 +242,7 @@ function Profile() {
     ? new Date(user.createdAt).toLocaleDateString("vi-VN")
     : "Không có";
 
-  // Hàm render nội dung động dựa vào tab đang chọn
+
   const renderContent = () => {
     switch (activeTab) {
       case "info":

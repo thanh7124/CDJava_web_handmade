@@ -8,13 +8,14 @@ const navItems = [
   { label: 'Đơn hàng', to: '/manage-orders' },
   { label: 'Người dùng', to: '/manage-users' },
   { label: 'Danh mục', to: '/manage-categories' },
+  { label: '🎟️ Khuyến mại', to: '/manage-promotions' },
 ];
 
 export default function Sidebar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/login');
   };
 

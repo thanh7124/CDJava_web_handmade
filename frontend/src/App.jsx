@@ -17,6 +17,7 @@ import ManageProducts from "./views/admin/ManageProducts";
 import ManageOrders from "./views/admin/ManageOrders";
 import ManageUsers from "./views/admin/ManageUsers";
 import ManageCategories from "./views/admin/ManageCategories";
+import AdminRoute from "./routes/AdminRoute";
 
 function App() {
   return (
@@ -35,15 +36,15 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/orders/:id" element={<OrderDetail />} />  
 
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/manage-products" element={<ManageProducts />} />
-        <Route path="/manage-orders" element={<ManageOrders />} />
-        <Route path="/manage-users" element={<ManageUsers />} />
-        <Route path="/manage-categories" element={<ManageCategories />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/orders/:id" element={<OrderDetail />} />
+
+        <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
+        <Route path="/manage-products" element={<AdminRoute><ManageProducts /></AdminRoute>} />
+        <Route path="/manage-orders" element={<AdminRoute><ManageOrders /></AdminRoute>} />
+        <Route path="/manage-users" element={<AdminRoute><ManageUsers /></AdminRoute>} />
+        <Route path="/manage-categories" element={<AdminRoute><ManageCategories /></AdminRoute>} />
       </Routes>
     </BrowserRouter>
   );

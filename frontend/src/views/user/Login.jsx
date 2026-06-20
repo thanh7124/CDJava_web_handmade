@@ -35,12 +35,16 @@ function Login() {
     setError("");
 
     try {
-      await login({
+      const authUser = await login({
         email: formData.email.trim(),
         password: formData.password,
       });
 
-      navigate("/");
+      if (authUser?.role === "ADMIN") {
+        navigate("/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : "Đăng nhập thất bại");
     }

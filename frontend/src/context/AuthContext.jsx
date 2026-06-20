@@ -93,6 +93,7 @@ export function AuthProvider({ children }) {
       user,
       loading,
       isAuthenticated: Boolean(user?.token),
+      isAdmin: user?.role === "ADMIN",
       token: user?.token || null,
       login,
       register,
