@@ -17,6 +17,7 @@ import ManageProducts from "./views/admin/ManageProducts";
 import ManageOrders from "./views/admin/ManageOrders";
 import ManageUsers from "./views/admin/ManageUsers";
 import ManageCategories from "./views/admin/ManageCategories";
+import ManagePromotions from "./views/admin/ManagePromotions";
 import AdminRoute from "./routes/AdminRoute";
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
         <Route path="/manage-orders" element={<AdminRoute><ManageOrders /></AdminRoute>} />
         <Route path="/manage-users" element={<AdminRoute><ManageUsers /></AdminRoute>} />
         <Route path="/manage-categories" element={<AdminRoute><ManageCategories /></AdminRoute>} />
+        <Route path="/manage-promotions" element={<AdminRoute><ManagePromotions /></AdminRoute>} />
       </Routes>
     </BrowserRouter>
   );

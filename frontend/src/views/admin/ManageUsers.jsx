@@ -1,35 +1,130 @@
-import React, { useMemo, useState } from 'react';
-import Sidebar from '../../components/layout/Sidebar';
-import './AdminCrud.css';
+import React, { useEffect, useMemo, useState } from "react";
+import Sidebar from "../../components/layout/Sidebar";
+import { useAuth } from "../../context/AuthContext";
+import {
+  deleteAdminUser,
+  fetchAdminUsers,
+  updateAdminUser,
+} from "../../services/user.service";
+import "./AdminCrud.css";
 
-const initialUsers = [
-  { id: 1, fullName: 'Nguyễn Văn A', email: 'a@example.com', role: 'Quản trị', status: 'Hoạt động', joined: '2025-12-10' },
-  { id: 2, fullName: 'Trần Thị B', email: 'b@example.com', role: 'Nhân viên', status: 'Hoạt động', joined: '2026-01-14' },
-  { id: 3, fullName: 'Lê Văn C', email: 'c@example.com', role: 'Khách hàng', status: 'Khóa', joined: '2026-02-03' },
-  { id: 4, fullName: 'Phạm Thị D', email: 'd@example.com', role: 'Khách hàng', status: 'Hoạt động', joined: '2026-03-22' },
-];
-
-const roleOptions = ['Tất cả', 'Quản trị', 'Nhân viên', 'Khách hàng'];
+const emptyEditForm = {
+  fullName: "",
+  phone: "",
+  role: "USER",
+  active: true,
+};
 
 export default function ManageUsers() {
-  const [query, setQuery] = useState('');
-  const [role, setRole] = useState('Tất cả');
+  const { user } = useAuth();
+  const token = user?.token || "";
+
+  const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("ALL");
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [editingUserId, setEditingUserId] = useState(null);
+  const [editForm, setEditForm] = useState(emptyEditForm);
+
+  const loadUsers = async () => {
+    if (!token) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await fetchAdminUsers(token);
+      setUsers(result || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không tải được người dùng");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, [token]);
+
+  useEffect(() => {
+    setRoleFilter("ALL");
+  }, []);
 
   const filteredUsers = useMemo(() => {
-    let result = [...initialUsers];
-    if (query.trim()) {
-      const lowerQuery = query.trim().toLowerCase();
-      result = result.filter(
-        (user) =>
-          user.fullName.toLowerCase().includes(lowerQuery) ||
-          user.email.toLowerCase().includes(lowerQuery)
-      );
+    const lowerQuery = query.trim().toLowerCase();
+
+    return users.filter((item) => {
+      const matchesQuery =
+        !lowerQuery ||
+        (item.fullName || "").toLowerCase().includes(lowerQuery) ||
+        (item.email || "").toLowerCase().includes(lowerQuery);
+      const matchesRole = roleFilter === "ALL" || item.role === roleFilter;
+
+      return matchesQuery && matchesRole;
+    });
+  }, [query, roleFilter, users]);
+
+  const startEdit = (item) => {
+    setEditingUserId(item.id);
+    setEditForm({
+      fullName: item.fullName || "",
+      phone: item.phone || "",
+      role: item.role || "USER",
+      active: Boolean(item.active),
+    });
+    setError("");
+  };
+
+  const resetEdit = () => {
+    setEditingUserId(null);
+    setEditForm(emptyEditForm);
+    setError("");
+  };
+
+  const handleEditChange = (field) => (event) => {
+    const value = field === "active" ? event.target.value === "true" : event.target.value;
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSave = async (event, id) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+
+    try {
+      await updateAdminUser(token, id, editForm);
+      resetEdit();
+      await loadUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không cập nhật được người dùng");
+    } finally {
+      setSaving(false);
     }
-    if (role !== 'Tất cả') {
-      result = result.filter((user) => user.role === role);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa người dùng này không?")) return;
+
+    setSaving(true);
+    setError("");
+
+    try {
+      await deleteAdminUser(token, id);
+      if (editingUserId === id) resetEdit();
+      await loadUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không xóa được người dùng");
+    } finally {
+      setSaving(false);
     }
-    return result;
-  }, [query, role]);
+  };
+
+  const roleOptions = ["ALL", "ADMIN", "USER"];
 
   return (
     <div className="admin-page manage-users-page">
@@ -42,11 +137,12 @@ export default function ManageUsers() {
               <p className="page-label">Quản lý người dùng</p>
               <h1 className="page-title">Người dùng</h1>
               <p className="page-description">
-                Quản lý tài khoản, vai trò và trạng thái truy cập của khách hàng.
+                Xem, tìm kiếm, sửa vai trò và trạng thái tài khoản người dùng.
               </p>
             </div>
-            <button className="page-action-btn">Thêm người dùng</button>
           </header>
+
+          {error && <div className="auth-error">{error}</div>}
 
           <section className="manage-products-filters">
             <div className="filter-field">
@@ -60,12 +156,10 @@ export default function ManageUsers() {
             </div>
             <div className="filter-field">
               <label>Vai trò</label>
-              <select value={role} onChange={(e) => setRole(e.target.value)}>
-                {roleOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
+              <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                <option value="ALL">Tất cả</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="USER">USER</option>
               </select>
             </div>
           </section>
@@ -81,25 +175,91 @@ export default function ManageUsers() {
               <span>Hành động</span>
             </div>
 
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <div className="table-row" key={user.id}>
-                  <span>{user.id}</span>
-                  <span>{user.fullName}</span>
-                  <span>{user.email}</span>
-                  <span>{user.role}</span>
-                  <span className={`status-pill ${user.status === 'Hoạt động' ? 'in-stock' : 'out-of-stock'}`}>
-                    {user.status}
-                  </span>
-                  <span>{user.joined}</span>
-                  <span className="row-actions">
-                    <button className="action-btn edit">Sửa</button>
-                    <button className="action-btn delete">Khóa</button>
-                  </span>
-                </div>
-              ))
+            {loading ? (
+              <div className="empty-state">Đang tải người dùng...</div>
+            ) : filteredUsers.length > 0 ? (
+              filteredUsers.map((item) => {
+                const isEditing = editingUserId === item.id;
+                const joined = item.createdDate
+                  ? new Date(item.createdDate).toLocaleDateString("vi-VN")
+                  : "-";
+
+                return isEditing ? (
+                  <form
+                    key={item.id}
+                    className="table-row category-inline-edit"
+                    onSubmit={(event) => handleSave(event, item.id)}
+                  >
+                    <span>{item.id}</span>
+                    <span>
+                      <input
+                        type="text"
+                        value={editForm.fullName}
+                        onChange={handleEditChange("fullName")}
+                        placeholder="Họ và tên"
+                      />
+                    </span>
+                    <span>{item.email}</span>
+                    <span>
+                      <select value={editForm.role} onChange={handleEditChange("role")}>
+                        <option value="USER">USER</option>
+                        <option value="ADMIN">ADMIN</option>
+                      </select>
+                    </span>
+                    <span>
+                      <select value={String(editForm.active)} onChange={handleEditChange("active")}>
+                        <option value="true">Hoạt động</option>
+                        <option value="false">Khóa</option>
+                      </select>
+                    </span>
+                    <span>{joined}</span>
+                    <span className="row-actions">
+                      <button className="action-btn edit" type="submit" disabled={saving}>
+                        {saving ? "Đang lưu..." : "Lưu"}
+                      </button>
+                      <button
+                        className="action-btn delete"
+                        type="button"
+                        onClick={resetEdit}
+                        disabled={saving}
+                      >
+                        Hủy
+                      </button>
+                    </span>
+                  </form>
+                ) : (
+                  <div className="table-row" key={item.id}>
+                    <span>{item.id}</span>
+                    <span>{item.fullName}</span>
+                    <span>{item.email}</span>
+                    <span>{item.role}</span>
+                    <span className={`status-pill ${item.active ? "in-stock" : "out-of-stock"}`}>
+                      {item.active ? "Hoạt động" : "Khóa"}
+                    </span>
+                    <span>{joined}</span>
+                    <span className="row-actions">
+                      <button
+                        className="action-btn edit"
+                        type="button"
+                        onClick={() => startEdit(item)}
+                        disabled={saving}
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        className="action-btn delete"
+                        type="button"
+                        onClick={() => handleDelete(item.id)}
+                        disabled={saving || item.id === user?.id}
+                      >
+                        Xóa
+                      </button>
+                    </span>
+                  </div>
+                );
+              })
             ) : (
-              <div className="empty-state">Không có người dùng phù hợp.</div>
+              <div className="empty-state">Không có người dùng nào phù hợp.</div>
             )}
           </section>
         </main>
