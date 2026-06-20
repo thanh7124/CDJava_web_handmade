@@ -1,6 +1,7 @@
 package com.handmade.service;
 
 import com.handmade.dto.CheckoutRequest;
+import com.handmade.dto.OrderStatusUpdateRequest;
 import com.handmade.dto.OrderResponse;
 import com.handmade.entity.CartItem;
 import com.handmade.entity.Order;
@@ -43,6 +44,48 @@ public class OrderService {
                 .stream()
                 .map(OrderResponse::from)
                 .toList();
+    }
+
+    public List<OrderResponse> getAllOrders() {
+        return orderRepository.findAll()
+                .stream()
+                .map(OrderResponse::from)
+                .toList();
+    }
+
+    public OrderResponse getOrderByIdForAdmin(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        return OrderResponse.from(order);
+    }
+
+    @Transactional
+    public OrderResponse updateOrderStatus(Long id, OrderStatusUpdateRequest request) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        if (request.getStatus() == null || request.getStatus().trim().isEmpty()) {
+            throw new RuntimeException("Trạng thái không được để trống");
+        }
+
+        String status = request.getStatus().trim().toUpperCase();
+        if (!"PENDING".equals(status)
+                && !"PROCESSING".equals(status)
+                && !"SHIPPED".equals(status)
+                && !"COMPLETED".equals(status)
+                && !"CANCELLED".equals(status)) {
+            throw new RuntimeException("Trạng thái không hợp lệ");
+        }
+
+        order.setStatus(status);
+        return OrderResponse.from(orderRepository.save(order));
+    }
+
+    @Transactional
+    public void deleteOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        orderRepository.delete(order);
     }
 
     public OrderResponse getOrderById(Long id) {

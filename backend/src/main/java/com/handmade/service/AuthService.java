@@ -63,6 +63,10 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không đúng"));
 
+        if (user.getActive() != null && !user.getActive()) {
+            throw new RuntimeException("Tài khoản đã bị khóa");
+        }
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Email hoặc mật khẩu không đúng");
         }

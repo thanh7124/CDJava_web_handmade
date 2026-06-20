@@ -194,6 +194,22 @@
   color: var(--muted-color);
 }
 
+.product-inline-edit input,
+.product-inline-edit select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--light-bg);
+  color: var(--text-color);
+}
+
+.manage-products-form {
+  display: grid;
+  gap: 14px;
+}
+
 @media (max-width: 1080px) {
   .manage-products-filters {
     grid-template-columns: 1fr 1fr;

@@ -1,75 +1,108 @@
+import React, { useEffect, useMemo, useState } from "react";
+import Sidebar from "../../components/layout/Sidebar";
+import { useAuth } from "../../context/AuthContext";
+import {
+  deleteOrderApi,
+  fetchAdminOrders,
+  updateOrderStatusApi,
+} from "../../services/adminOrder.service";
+import "./AdminCrud.css";
 
-import React, { useMemo, useState } from 'react';
-import { formatCurrency } from '../../services/product.service';
-import Sidebar from '../../components/layout/Sidebar';
-import './AdminCrud.css';
+const statusOptions = ["ALL", "PENDING", "PROCESSING", "SHIPPED", "COMPLETED", "CANCELLED"];
 
-const initialOrders = [
-  {
-    id: 'DH-1210',
-    customer: 'Nguyễn Thị Hà',
-    total: 1280000,
-    items: 3,
-    date: '2026-06-01',
-    status: 'Đang xử lý',
-  },
-  {
-    id: 'DH-1209',
-    customer: 'Trần Văn Minh',
-    total: 640000,
-    items: 1,
-    date: '2026-05-31',
-    status: 'Đã hoàn thành',
-  },
-  {
-    id: 'DH-1208',
-    customer: 'Lê Thị Hoa',
-    total: 2100000,
-    items: 5,
-    date: '2026-05-30',
-    status: 'Đang giao',
-  },
-  {
-    id: 'DH-1207',
-    customer: 'Phạm Minh Tuấn',
-    total: 580000,
-    items: 2,
-    date: '2026-05-29',
-    status: 'Đã huỷ',
-  },
-];
-
-const statusOptions = ['Tất cả', 'Đang xử lý', 'Đang giao', 'Đã hoàn thành', 'Đã huỷ'];
+const statusLabel = {
+  PENDING: "Đang xử lý",
+  PROCESSING: "Đang xử lý",
+  SHIPPED: "Đang giao",
+  COMPLETED: "Đã hoàn thành",
+  CANCELLED: "Đã hủy",
+};
 
 export default function ManageOrders() {
-  const [query, setQuery] = useState('');
-  const [status, setStatus] = useState('Tất cả');
-  const [sort, setSort] = useState('date-desc');
+  const { user } = useAuth();
+  const token = user?.token || "";
+
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("ALL");
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [editingOrderId, setEditingOrderId] = useState(null);
+  const [editStatus, setEditStatus] = useState("PENDING");
+
+  const loadOrders = async () => {
+    if (!token) return;
+    setLoading(true);
+    setError("");
+    try {
+      const result = await fetchAdminOrders(token);
+      setOrders(result || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không tải được đơn hàng");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOrders();
+  }, [token]);
 
   const filteredOrders = useMemo(() => {
-    let result = [...initialOrders];
-    if (query.trim()) {
-      const keyword = query.trim().toLowerCase();
-      result = result.filter(
-        (order) =>
-          order.id.toLowerCase().includes(keyword) ||
-          order.customer.toLowerCase().includes(keyword)
-      );
-    }
-    if (status !== 'Tất cả') {
-      result = result.filter((order) => order.status === status);
-    }
+    const keyword = query.trim().toLowerCase();
 
-    result.sort((a, b) => {
-      if (sort === 'date-desc') return new Date(b.date) - new Date(a.date);
-      if (sort === 'date-asc') return new Date(a.date) - new Date(b.date);
-      if (sort === 'total-desc') return b.total - a.total;
-      if (sort === 'total-asc') return a.total - b.total;
-      return 0;
+    return orders.filter((order) => {
+      const matchesQuery =
+        !keyword ||
+        String(order.id).toLowerCase().includes(keyword) ||
+        (order.recipientName || "").toLowerCase().includes(keyword) ||
+        (order.phone || "").toLowerCase().includes(keyword);
+      const matchesStatus = status === "ALL" || order.status === status;
+      return matchesQuery && matchesStatus;
     });
+  }, [query, status, orders]);
 
-    return result;
-  }, [query, status, sort]);
+  const startEdit = (order) => {
+    setEditingOrderId(order.id);
+    setEditStatus(order.status || "PENDING");
+    setError("");
+  };
+
+  const resetEdit = () => {
+    setEditingOrderId(null);
+    setEditStatus("PENDING");
+    setError("");
+  };
+
+  const handleSaveStatus = async (id) => {
+    setSaving(true);
+    setError("");
+    try {
+      await updateOrderStatusApi(token, id, editStatus);
+      resetEdit();
+      await loadOrders();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không cập nhật được đơn hàng");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa đơn hàng này không?")) return;
+    setSaving(true);
+    setError("");
+    try {
+      await deleteOrderApi(token, id);
+      if (editingOrderId === id) resetEdit();
+      await loadOrders();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Không xóa được đơn hàng");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="admin-page manage-orders-page">
@@ -82,11 +115,12 @@ export default function ManageOrders() {
               <p className="page-label">Quản lý đơn hàng</p>
               <h1 className="page-title">Đơn hàng</h1>
               <p className="page-description">
-                Theo dõi trạng thái đơn hàng, thông tin khách và tổng tiền.
+                Theo dõi, tìm kiếm và cập nhật trạng thái các đơn hàng.
               </p>
             </div>
-            <button className="page-action-btn">Tạo đơn mới</button>
           </header>
+
+          {error && <div className="auth-error">{error}</div>}
 
           <section className="manage-products-filters">
             <div className="filter-field">
@@ -95,60 +129,88 @@ export default function ManageOrders() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Mã đơn hoặc khách hàng"
+                placeholder="Mã đơn, người nhận, số điện thoại"
               />
             </div>
             <div className="filter-field">
               <label>Trạng thái</label>
               <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                {statusOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="filter-field">
-              <label>Sắp xếp</label>
-              <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                <option value="date-desc">Ngày mới nhất</option>
-                <option value="date-asc">Ngày cũ nhất</option>
-                <option value="total-desc">Tổng tiền cao nhất</option>
-                <option value="total-asc">Tổng tiền thấp nhất</option>
+                <option value="ALL">Tất cả</option>
+                <option value="PENDING">Đang xử lý</option>
+                <option value="PROCESSING">Đang xử lý</option>
+                <option value="SHIPPED">Đang giao</option>
+                <option value="COMPLETED">Đã hoàn thành</option>
+                <option value="CANCELLED">Đã hủy</option>
               </select>
             </div>
           </section>
 
           <section className="manage-products-table">
             <div className="table-head">
-              <span>Mã đơn</span>
-              <span>Khách hàng</span>
-              <span>Ngày</span>
+              <span>ID</span>
+              <span>Người nhận</span>
+              <span>SĐT</span>
               <span>Tổng tiền</span>
               <span>Số món</span>
               <span>Trạng thái</span>
               <span>Hành động</span>
             </div>
 
-            {filteredOrders.length > 0 ? (
-              filteredOrders.map((order) => (
-                <div className="table-row" key={order.id}>
-                  <span>{order.id}</span>
-                  <span>{order.customer}</span>
-                  <span>{order.date}</span>
-                  <span>{formatCurrency(order.total)}</span>
-                  <span>{order.items}</span>
-                  <span className={`status-pill ${order.status === 'Đã hoàn thành' ? 'in-stock' : order.status === 'Đang giao' ? 'low-stock' : order.status === 'Đang xử lý' ? 'status-processing' : 'out-of-stock'}`}>
-                    {order.status}
-                  </span>
-                  <span className="row-actions">
-                    <button className="action-btn edit">Xem</button>
-                    <button className="action-btn delete">Cập nhật</button>
-                  </span>
-                </div>
-              ))
+            {loading ? (
+              <div className="empty-state">Đang tải đơn hàng...</div>
+            ) : filteredOrders.length > 0 ? (
+              filteredOrders.map((order) => {
+                const isEditing = editingOrderId === order.id;
+                const itemCount = order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+
+                return isEditing ? (
+                  <div className="table-row category-inline-edit" key={order.id}>
+                    <span>{order.id}</span>
+                    <span>{order.recipientName}</span>
+                    <span>{order.phone}</span>
+                    <span>{Number(order.totalAmount || 0).toLocaleString("vi-VN")} đ</span>
+                    <span>{itemCount}</span>
+                    <span>
+                      <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
+                        <option value="PENDING">Đang xử lý</option>
+                        <option value="PROCESSING">Đang xử lý</option>
+                        <option value="SHIPPED">Đang giao</option>
+                        <option value="COMPLETED">Đã hoàn thành</option>
+                        <option value="CANCELLED">Đã hủy</option>
+                      </select>
+                    </span>
+                    <span className="row-actions">
+                      <button className="action-btn edit" type="button" onClick={() => handleSaveStatus(order.id)} disabled={saving}>
+                        {saving ? "Đang lưu..." : "Lưu"}
+                      </button>
+                      <button className="action-btn delete" type="button" onClick={resetEdit} disabled={saving}>
+                        Hủy
+                      </button>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="table-row" key={order.id}>
+                    <span>{order.id}</span>
+                    <span>{order.recipientName}</span>
+                    <span>{order.phone}</span>
+                    <span>{Number(order.totalAmount || 0).toLocaleString("vi-VN")} đ</span>
+                    <span>{itemCount}</span>
+                    <span className={`status-pill ${order.status === "COMPLETED" ? "in-stock" : order.status === "SHIPPED" ? "low-stock" : order.status === "CANCELLED" ? "out-of-stock" : "status-processing"}`}>
+                      {statusLabel[order.status] || order.status}
+                    </span>
+                    <span className="row-actions">
+                      <button className="action-btn edit" type="button" onClick={() => startEdit(order)} disabled={saving}>
+                        Sửa
+                      </button>
+                      <button className="action-btn delete" type="button" onClick={() => handleDelete(order.id)} disabled={saving}>
+                        Xóa
+                      </button>
+                    </span>
+                  </div>
+                );
+              })
             ) : (
-              <div className="empty-state">Không có đơn hàng phù hợp.</div>
+              <div className="empty-state">Không có đơn hàng nào phù hợp.</div>
             )}
           </section>
         </main>

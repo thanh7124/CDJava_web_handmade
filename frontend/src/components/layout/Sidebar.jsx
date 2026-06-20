@@ -24,7 +24,7 @@ export default function Sidebar() {
       <div className="sidebar-inner">
         <div className="sidebar-brand">
           <div className="brand-icon">HM</div>
-          <div className="brand-name">Handmade</div>
+          <div className="brand-name">HANDMADE</div>
         </div>
 
         <nav className="sidebar-nav">
