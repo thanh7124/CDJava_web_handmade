@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import CustomSelect from "../../components/common/CustomSelect";
 import Sidebar from "../../components/layout/Sidebar";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -38,6 +40,7 @@ function slugify(value) {
 }
 
 export default function ManageProducts() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const token = user?.token || "";
 
@@ -83,6 +86,29 @@ export default function ManageProducts() {
     categories.forEach((item) => map.set(String(item.id), item.name));
     return map;
   }, [categories]);
+
+  const categoryOptions = useMemo(
+    () => [{ value: "ALL", label: "Tất cả" }, ...categories.map((item) => ({ value: String(item.id), label: item.name }))],
+    [categories]
+  );
+
+  const categoryFormOptions = useMemo(
+    () => [{ value: "", label: "Chọn danh mục" }, ...categories.map((item) => ({ value: String(item.id), label: item.name }))],
+    [categories]
+  );
+
+  const sortOptions = [
+    { value: "newest", label: "Mới nhất" },
+    { value: "price-asc", label: "Giá tăng dần" },
+    { value: "price-desc", label: "Giá giảm dần" },
+    { value: "rating", label: "Đánh giá cao" },
+    { value: "best-seller", label: "Bán chạy" },
+  ];
+
+  const activeOptions = [
+    { value: "true", label: "Hoạt động" },
+    { value: "false", label: "Tắt" },
+  ];
 
   const filteredProducts = useMemo(() => {
     const keyword = query.trim().toLowerCase();
@@ -183,9 +209,7 @@ export default function ManageProducts() {
             <div>
               <p className="page-label">Quản lý sản phẩm</p>
               <h1 className="page-title">Danh sách sản phẩm</h1>
-              <p className="page-description">
-                Quản lý sản phẩm.
-              </p>
+              <p className="page-description">Quản lý sản phẩm từ dữ liệu backend thật.</p>
             </div>
             <button className="page-action-btn" type="button" onClick={() => setShowForm((v) => !v)}>
               {showForm ? "Đóng" : "Thêm sản phẩm"}
@@ -206,24 +230,20 @@ export default function ManageProducts() {
             </div>
             <div className="filter-field">
               <label>Danh mục</label>
-              <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-                <option value="ALL">Tất cả</option>
-                {categories.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
+              <CustomSelect
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                options={categoryOptions}
+                searchable
+              />
             </div>
             <div className="filter-field">
               <label>Sắp xếp</label>
-              <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                <option value="newest">Mới nhất</option>
-                <option value="price-asc">Giá tăng dần</option>
-                <option value="price-desc">Giá giảm dần</option>
-                <option value="rating">Đánh giá cao</option>
-                <option value="best-seller">Bán chạy</option>
-              </select>
+              <CustomSelect
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                options={sortOptions}
+              />
             </div>
           </section>
 
@@ -269,12 +289,12 @@ export default function ManageProducts() {
                   </div>
                   <div className="filter-field">
                     <label>Danh mục</label>
-                    <select value={form.categoryId} onChange={(e) => setForm((p) => ({ ...p, categoryId: e.target.value }))}>
-                      <option value="">Chọn danh mục</option>
-                      {categories.map((item) => (
-                        <option key={item.id} value={item.id}>{item.name}</option>
-                      ))}
-                    </select>
+                    <CustomSelect
+                      value={form.categoryId}
+                      onChange={(e) => setForm((p) => ({ ...p, categoryId: e.target.value }))}
+                      options={categoryFormOptions}
+                      searchable
+                    />
                   </div>
                 </div>
                 <div className="filter-field">
@@ -287,10 +307,11 @@ export default function ManageProducts() {
                 </div>
                 <div className="filter-field">
                   <label>Trạng thái</label>
-                  <select value={String(form.active)} onChange={(e) => setForm((p) => ({ ...p, active: e.target.value === "true" }))}>
-                    <option value="true">Hoạt động</option>
-                    <option value="false">Tắt</option>
-                  </select>
+                  <CustomSelect
+                    value={String(form.active)}
+                    onChange={(e) => setForm((p) => ({ ...p, active: e.target.value === "true" }))}
+                    options={activeOptions}
+                  />
                 </div>
                 <div className="row-actions">
                   <button className="page-action-btn" type="submit" disabled={saving}>
@@ -335,6 +356,13 @@ export default function ManageProducts() {
                     {product.stock > 20 ? "Còn hàng" : product.stock > 5 ? "Còn ít" : "Hết hàng"}
                   </span>
                   <span className="row-actions">
+                    <button
+                      className="action-btn details"
+                      type="button"
+                      onClick={() => navigate(`/manage-products/${product.id}`)}
+                    >
+                      Chi tiết
+                    </button>
                     <button className="action-btn edit" type="button" onClick={() => startEdit(product)} disabled={saving}>
                       Sửa
                     </button>

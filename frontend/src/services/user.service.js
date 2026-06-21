@@ -36,6 +36,14 @@ export async function fetchAdminUsers(token) {
   return handleResponse(response);
 }
 
+export async function fetchAdminUser(token, id) {
+  const response = await fetch(`${API_URL}/users/${id}`, {
+    headers: getAuthHeaders(token),
+  });
+
+  return handleResponse(response);
+}
+
 export async function updateAdminUser(token, id, payload) {
   const response = await fetch(`${API_URL}/users/${id}`, {
     method: "PUT",

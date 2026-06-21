@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import CustomSelect from "../../components/common/CustomSelect";
 import Sidebar from "../../components/layout/Sidebar";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -15,7 +17,24 @@ const emptyEditForm = {
   active: true,
 };
 
+const roleFilterOptions = [
+  { value: "ALL", label: "Tất cả" },
+  { value: "ADMIN", label: "ADMIN" },
+  { value: "USER", label: "USER" },
+];
+
+const roleEditOptions = [
+  { value: "USER", label: "USER" },
+  { value: "ADMIN", label: "ADMIN" },
+];
+
+const statusEditOptions = [
+  { value: "true", label: "Hoạt động" },
+  { value: "false", label: "Khóa" },
+];
+
 export default function ManageUsers() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const token = user?.token || "";
 
@@ -47,10 +66,6 @@ export default function ManageUsers() {
   useEffect(() => {
     loadUsers();
   }, [token]);
-
-  useEffect(() => {
-    setRoleFilter("ALL");
-  }, []);
 
   const filteredUsers = useMemo(() => {
     const lowerQuery = query.trim().toLowerCase();
@@ -85,6 +100,7 @@ export default function ManageUsers() {
 
   const handleEditChange = (field) => (event) => {
     const value = field === "active" ? event.target.value === "true" : event.target.value;
+
     setEditForm((prev) => ({
       ...prev,
       [field]: value,
@@ -124,8 +140,6 @@ export default function ManageUsers() {
     }
   };
 
-  const roleOptions = ["ALL", "ADMIN", "USER"];
-
   return (
     <div className="admin-page manage-users-page">
       <div className="admin-dashboard-layout">
@@ -156,15 +170,15 @@ export default function ManageUsers() {
             </div>
             <div className="filter-field">
               <label>Vai trò</label>
-              <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-                <option value="ALL">Tất cả</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="USER">USER</option>
-              </select>
+              <CustomSelect
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                options={roleFilterOptions}
+              />
             </div>
           </section>
 
-          <section className="manage-products-table">
+          <section className="manage-products-table user-table">
             <div className="table-head">
               <span>ID</span>
               <span>Họ và tên</span>
@@ -201,16 +215,18 @@ export default function ManageUsers() {
                     </span>
                     <span>{item.email}</span>
                     <span>
-                      <select value={editForm.role} onChange={handleEditChange("role")}>
-                        <option value="USER">USER</option>
-                        <option value="ADMIN">ADMIN</option>
-                      </select>
+                      <CustomSelect
+                        value={editForm.role}
+                        onChange={handleEditChange("role")}
+                        options={roleEditOptions}
+                      />
                     </span>
                     <span>
-                      <select value={String(editForm.active)} onChange={handleEditChange("active")}>
-                        <option value="true">Hoạt động</option>
-                        <option value="false">Khóa</option>
-                      </select>
+                      <CustomSelect
+                        value={String(editForm.active)}
+                        onChange={handleEditChange("active")}
+                        options={statusEditOptions}
+                      />
                     </span>
                     <span>{joined}</span>
                     <span className="row-actions">
@@ -228,16 +244,33 @@ export default function ManageUsers() {
                     </span>
                   </form>
                 ) : (
-                  <div className="table-row" key={item.id}>
+                  <div className="table-row user-table-row" key={item.id}>
                     <span>{item.id}</span>
-                    <span>{item.fullName}</span>
-                    <span>{item.email}</span>
+                    <span>
+                      <button
+                        className="user-name-link"
+                        type="button"
+                        onClick={() => navigate(`/manage-users/${item.id}`)}
+                      >
+                        {item.fullName || "Chưa cập nhật"}
+                      </button>
+                    </span>
+                    <span className="user-email-cell" title={item.email}>
+                      {item.email}
+                    </span>
                     <span>{item.role}</span>
                     <span className={`status-pill ${item.active ? "in-stock" : "out-of-stock"}`}>
                       {item.active ? "Hoạt động" : "Khóa"}
                     </span>
                     <span>{joined}</span>
                     <span className="row-actions">
+                      <button
+                        className="action-btn details"
+                        type="button"
+                        onClick={() => navigate(`/manage-users/${item.id}`)}
+                      >
+                        Chi tiết
+                      </button>
                       <button
                         className="action-btn edit"
                         type="button"

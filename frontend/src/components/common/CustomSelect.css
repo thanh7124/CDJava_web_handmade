@@ -1,0 +1,201 @@
+.custom-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.custom-select-trigger {
+  position: relative;
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.1)),
+    rgba(255, 248, 242, 0.58);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    0 18px 36px rgba(126, 84, 55, 0.12);
+  color: var(--text-color);
+  cursor: pointer;
+  transition:
+    transform 0.24s ease,
+    box-shadow 0.24s ease,
+    border-color 0.24s ease,
+    background 0.24s ease;
+}
+
+.custom-select-trigger:hover {
+  transform: translateY(-1px);
+  border-color: rgba(167, 95, 55, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 24px 44px rgba(126, 84, 55, 0.14);
+}
+
+.custom-select-trigger:focus-visible {
+  outline: none;
+  border-color: rgba(167, 95, 55, 0.5);
+  box-shadow:
+    0 0 0 4px rgba(167, 95, 55, 0.12),
+    0 24px 44px rgba(126, 84, 55, 0.14);
+}
+
+.custom-select-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.custom-select-value.is-placeholder {
+  color: rgba(77, 58, 45, 0.58);
+}
+
+.custom-select-icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-right: 2px solid rgba(123, 77, 50, 0.84);
+  border-bottom: 2px solid rgba(123, 77, 50, 0.84);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.26s ease;
+}
+
+.custom-select.is-open .custom-select-icon {
+  transform: rotate(225deg) translateY(-1px);
+}
+
+.custom-select-panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  right: 0;
+  z-index: 35;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 24px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08)),
+    rgba(255, 249, 244, 0.65);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 26px 60px rgba(89, 56, 36, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px) scale(0.98);
+  transform-origin: top center;
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease,
+    visibility 0.24s ease;
+}
+
+.custom-select.is-open .custom-select-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.custom-select-search-wrap {
+  margin-bottom: 10px;
+}
+
+.custom-select-search {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid rgba(167, 95, 55, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.54);
+  backdrop-filter: blur(10px);
+  color: var(--text-color);
+  box-sizing: border-box;
+}
+
+.custom-select-search:focus {
+  outline: none;
+  border-color: rgba(167, 95, 55, 0.42);
+  box-shadow: 0 0 0 4px rgba(167, 95, 55, 0.08);
+}
+
+.custom-select-options {
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.custom-select-options::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-select-options::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(167, 95, 55, 0.25);
+}
+
+.custom-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.34);
+  color: var(--text-color);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.custom-select-option:hover {
+  transform: translateX(2px);
+  border-color: rgba(167, 95, 55, 0.18);
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.custom-select-option.is-selected {
+  border-color: rgba(167, 95, 55, 0.24);
+  background:
+    linear-gradient(135deg, rgba(246, 230, 218, 0.94), rgba(255, 255, 255, 0.7)),
+    rgba(255, 255, 255, 0.52);
+  box-shadow: 0 12px 24px rgba(167, 95, 55, 0.12);
+}
+
+.custom-select-check {
+  color: var(--primary-color);
+  font-weight: 800;
+}
+
+.custom-select-empty {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.38);
+  color: var(--muted-color);
+  text-align: center;
+}
+
+.custom-select.is-disabled .custom-select-trigger {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

@@ -45,6 +45,13 @@ export async function createAdminProduct(token, payload) {
   return handleResponse(response);
 }
 
+export async function fetchAdminProduct(token, id) {
+  const response = await fetch(`${API_URL}/products/${id}`, {
+    headers: getAuthHeaders(token),
+  });
+  return handleResponse(response);
+}
+
 export async function updateAdminProduct(token, id, payload) {
   const response = await fetch(`${API_URL}/products/${id}`, {
     method: "PUT",

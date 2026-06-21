@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import CustomSelect from "../../components/common/CustomSelect";
 import Sidebar from "../../components/layout/Sidebar";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -19,6 +20,22 @@ const emptyForm = {
   description: "",
   active: true,
 };
+
+const filterStatusOptions = [
+  { value: "ALL", label: "Tất cả" },
+  { value: "ACTIVE", label: "Đang hoạt động" },
+  { value: "INACTIVE", label: "Không hoạt động" },
+];
+
+const discountTypeOptions = [
+  { value: "PERCENT", label: "PERCENT" },
+  { value: "AMOUNT", label: "AMOUNT" },
+];
+
+const activeOptions = [
+  { value: "true", label: "Hoạt động" },
+  { value: "false", label: "Tắt" },
+];
 
 function toDateTimeLocal(value) {
   if (!value) return "";
@@ -171,11 +188,11 @@ export default function ManagePromotions() {
             </div>
             <div className="filter-field">
               <label>Trạng thái</label>
-              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                <option value="ALL">Tất cả</option>
-                <option value="ACTIVE">Đang hoạt động</option>
-                <option value="INACTIVE">Không hoạt động</option>
-              </select>
+              <CustomSelect
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                options={filterStatusOptions}
+              />
             </div>
           </section>
 
@@ -195,10 +212,11 @@ export default function ManagePromotions() {
                 <div className="promo-filters">
                   <div className="filter-field">
                     <label>Loại giảm</label>
-                    <select value={form.discountType} onChange={(e) => setForm((p) => ({ ...p, discountType: e.target.value }))}>
-                      <option value="PERCENT">PERCENT</option>
-                      <option value="AMOUNT">AMOUNT</option>
-                    </select>
+                    <CustomSelect
+                      value={form.discountType}
+                      onChange={(e) => setForm((p) => ({ ...p, discountType: e.target.value }))}
+                      options={discountTypeOptions}
+                    />
                   </div>
                   <div className="filter-field">
                     <label>Giá trị giảm <span>*</span></label>
@@ -221,10 +239,11 @@ export default function ManagePromotions() {
                 </div>
                 <div className="filter-field">
                   <label>Trạng thái</label>
-                  <select value={String(form.active)} onChange={(e) => setForm((p) => ({ ...p, active: e.target.value === "true" }))}>
-                    <option value="true">Hoạt động</option>
-                    <option value="false">Tắt</option>
-                  </select>
+                  <CustomSelect
+                    value={String(form.active)}
+                    onChange={(e) => setForm((p) => ({ ...p, active: e.target.value === "true" }))}
+                    options={activeOptions}
+                  />
                 </div>
                 <div className="row-actions">
                   <button className="page-action-btn" type="submit" disabled={saving}>

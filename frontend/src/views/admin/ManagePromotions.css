@@ -1,13 +1,26 @@
 .promo-page {
   color: var(--text-color);
   min-height: 100vh;
-  padding-left: 250px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.promo-page .admin-dashboard-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
 }
 
 .promo-content {
   display: flex;
   flex-direction: column;
-  margin: 32px;
+  margin: 0;
+  padding: 24px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .promo-table {
@@ -127,8 +140,12 @@
 }
 
 @media (max-width: 960px) {
-  .promo-page {
-    padding-left: 0;
+  .promo-page .admin-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .promo-content {
+    padding: 20px;
   }
 
   .promo-filters,

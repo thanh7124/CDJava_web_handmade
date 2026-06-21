@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import CustomSelect from "../../components/common/CustomSelect";
 import Sidebar from "../../components/layout/Sidebar";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -8,8 +10,6 @@ import {
 } from "../../services/adminOrder.service";
 import "./AdminCrud.css";
 
-const statusOptions = ["ALL", "PENDING", "PROCESSING", "SHIPPED", "COMPLETED", "CANCELLED"];
-
 const statusLabel = {
   PENDING: "Đang xử lý",
   PROCESSING: "Đang xử lý",
@@ -18,7 +18,19 @@ const statusLabel = {
   CANCELLED: "Đã hủy",
 };
 
+const statusFilterOptions = [
+  { value: "ALL", label: "Tất cả" },
+  { value: "PENDING", label: "Đang xử lý" },
+  { value: "PROCESSING", label: "Đang xử lý" },
+  { value: "SHIPPED", label: "Đang giao" },
+  { value: "COMPLETED", label: "Đã hoàn thành" },
+  { value: "CANCELLED", label: "Đã hủy" },
+];
+
+const statusUpdateOptions = statusFilterOptions.filter((item) => item.value !== "ALL");
+
 export default function ManageOrders() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const token = user?.token || "";
 
@@ -134,14 +146,11 @@ export default function ManageOrders() {
             </div>
             <div className="filter-field">
               <label>Trạng thái</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                <option value="ALL">Tất cả</option>
-                <option value="PENDING">Đang xử lý</option>
-                <option value="PROCESSING">Đang xử lý</option>
-                <option value="SHIPPED">Đang giao</option>
-                <option value="COMPLETED">Đã hoàn thành</option>
-                <option value="CANCELLED">Đã hủy</option>
-              </select>
+              <CustomSelect
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                options={statusFilterOptions}
+              />
             </div>
           </section>
 
@@ -171,13 +180,11 @@ export default function ManageOrders() {
                     <span>{Number(order.totalAmount || 0).toLocaleString("vi-VN")} đ</span>
                     <span>{itemCount}</span>
                     <span>
-                      <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
-                        <option value="PENDING">Đang xử lý</option>
-                        <option value="PROCESSING">Đang xử lý</option>
-                        <option value="SHIPPED">Đang giao</option>
-                        <option value="COMPLETED">Đã hoàn thành</option>
-                        <option value="CANCELLED">Đã hủy</option>
-                      </select>
+                      <CustomSelect
+                        value={editStatus}
+                        onChange={(e) => setEditStatus(e.target.value)}
+                        options={statusUpdateOptions}
+                      />
                     </span>
                     <span className="row-actions">
                       <button className="action-btn edit" type="button" onClick={() => handleSaveStatus(order.id)} disabled={saving}>
@@ -199,6 +206,13 @@ export default function ManageOrders() {
                       {statusLabel[order.status] || order.status}
                     </span>
                     <span className="row-actions">
+                      <button
+                        className="action-btn details"
+                        type="button"
+                        onClick={() => navigate(`/manage-orders/${order.id}`)}
+                      >
+                        Chi tiết
+                      </button>
                       <button className="action-btn edit" type="button" onClick={() => startEdit(order)} disabled={saving}>
                         Sửa
                       </button>

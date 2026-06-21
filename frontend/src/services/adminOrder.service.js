@@ -29,6 +29,13 @@ export async function fetchAdminOrders(token) {
   return handleResponse(response);
 }
 
+export async function fetchAdminOrder(token, id) {
+  const response = await fetch(`${API_URL}/admin/orders/${id}`, {
+    headers: getAuthHeaders(token),
+  });
+  return handleResponse(response);
+}
+
 export async function updateOrderStatusApi(token, id, status) {
   const response = await fetch(`${API_URL}/admin/orders/${id}/status`, {
     method: "PUT",
