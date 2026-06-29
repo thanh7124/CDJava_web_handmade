@@ -628,3 +628,270 @@
     justify-content: flex-start;
   }
 }
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.admin-stat-card {
+  padding: 18px;
+  border: 1px solid #eee0d4;
+  border-radius: 18px;
+  background: #fffaf6;
+}
+
+.admin-stat-card span {
+  display: block;
+  color: #8a6b57;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.admin-stat-card strong {
+  display: block;
+  color: #2b1d18;
+  font-size: 24px;
+}
+
+.admin-toolbar {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.admin-toolbar input,
+.admin-toolbar select {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #ead7c7;
+  border-radius: 12px;
+  background: #fff;
+  color: #2b1d18;
+  font-weight: 700;
+}
+
+.admin-toolbar input {
+  flex: 1;
+  min-width: 260px;
+}
+
+.admin-message {
+  width: fit-content;
+  max-width: 100%;
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 999px;
+  background: #fff4eb;
+  color: #8a3f1d;
+  font-weight: 800;
+}
+
+.admin-empty {
+  padding: 32px;
+  text-align: center;
+  color: #8a6b57;
+  font-weight: 800;
+}
+
+.admin-table-card {
+  overflow-x: auto;
+}
+
+.admin-table td p {
+  margin: 4px 0;
+}
+
+.admin-table td small {
+  display: block;
+  margin-top: 4px;
+  color: #8a6b57;
+  font-weight: 600;
+}
+
+.admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.status-success {
+  background: #e8f8ee;
+  color: #167a3d;
+}
+
+.status-info {
+  background: #eaf3ff;
+  color: #1e62a7;
+}
+
+.status-primary {
+  background: #f0ecff;
+  color: #5942a8;
+}
+
+.status-warning {
+  background: #fff4db;
+  color: #9a6200;
+}
+
+.status-danger {
+  background: #ffecec;
+  color: #b3261e;
+}
+
+.status-muted {
+  background: #f2f2f2;
+  color: #666;
+}
+
+.admin-action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 170px;
+}
+
+.admin-action-stack select {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid #ead7c7;
+  border-radius: 10px;
+  background: #fff;
+  font-weight: 700;
+}
+
+.admin-primary-btn,
+.admin-secondary-btn,
+.admin-danger-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.admin-primary-btn {
+  border: none;
+  background: #2b1d18;
+  color: #fff;
+}
+
+.admin-secondary-btn {
+  border: 1px solid #ead7c7;
+  background: #fff;
+  color: #7a3f1d;
+}
+
+.admin-danger-btn {
+  border: none;
+  background: #ffecec;
+  color: #b3261e;
+}
+
+.admin-primary-btn:hover,
+.admin-secondary-btn:hover,
+.admin-danger-btn:hover {
+  transform: translateY(-1px);
+}
+
+.admin-primary-btn:disabled,
+.admin-secondary-btn:disabled,
+.admin-danger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.admin-order-detail-box {
+  padding: 20px;
+  border-radius: 18px;
+  background: #fffaf6;
+  border: 1px solid #eee0d4;
+}
+
+.admin-order-detail-box h3 {
+  margin: 0 0 16px;
+}
+
+.admin-order-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 10px 18px;
+  margin-bottom: 18px;
+}
+
+.admin-order-meta p {
+  margin: 0;
+}
+
+.admin-inner-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.admin-inner-table th,
+.admin-inner-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f0e0d2;
+  text-align: left;
+}
+
+.admin-inner-table th {
+  background: #fff4eb;
+  color: #7a3f1d;
+}
+
+@media (max-width: 900px) {
+  .admin-stat-grid {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
+  .admin-order-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.admin-inline-input,
+.admin-inline-textarea {
+  width: 100%;
+  border: 1px solid #ead7c7;
+  border-radius: 12px;
+  background: #fff;
+  color: #2b1d18;
+  font-family: inherit;
+  font-weight: 700;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.admin-inline-input {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.admin-inline-textarea {
+  padding: 12px;
+  resize: vertical;
+}
+
+.admin-inline-input:focus,
+.admin-inline-textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(190, 110, 64, 0.12);
+}
