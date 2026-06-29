@@ -27,6 +27,9 @@ public class Order {
 
     private String paymentMethod;
 
+    @Column(name = "payment_status")
+    private String paymentStatus;
+
     private String status;
 
     private BigDecimal subtotal;
@@ -52,10 +55,30 @@ public class Order {
     )
     private List<OrderItem> items = new ArrayList<>();
 
+    @OneToOne(
+            mappedBy = "order",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private Payment payment;
+
     @PrePersist
     public void prePersist() {
         createdDate = LocalDateTime.now();
         updatedDate = LocalDateTime.now();
+
+        if (status == null || status.isBlank()) {
+            status = "PENDING";
+        }
+
+        if (paymentMethod == null || paymentMethod.isBlank()) {
+            paymentMethod = "COD";
+        }
+
+        if (paymentStatus == null || paymentStatus.isBlank()) {
+            paymentStatus = "UNPAID";
+        }
     }
 
     @PreUpdate
@@ -66,6 +89,14 @@ public class Order {
     public void addItem(OrderItem item) {
         items.add(item);
         item.setOrder(this);
+    }
+
+    public void setPayment(Payment payment) {
+        this.payment = payment;
+
+        if (payment != null) {
+            payment.setOrder(this);
+        }
     }
 
     public Long getId() {
@@ -90,6 +121,10 @@ public class Order {
 
     public String getPaymentMethod() {
         return paymentMethod;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
     }
 
     public String getStatus() {
@@ -124,6 +159,10 @@ public class Order {
         return items;
     }
 
+    public Payment getPayment() {
+        return payment;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -146,6 +185,10 @@ public class Order {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
     }
 
     public void setStatus(String status) {

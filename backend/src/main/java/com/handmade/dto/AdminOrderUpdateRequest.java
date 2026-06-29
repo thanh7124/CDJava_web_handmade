@@ -1,13 +1,12 @@
 package com.handmade.dto;
 
-public class CheckoutRequest {
+public class AdminOrderUpdateRequest {
+
     private String recipientName;
     private String phone;
     private String address;
     private String note;
     private String paymentMethod;
-    private String transactionCode;
-    private String paymentNote;
 
     public String getRecipientName() {
         return recipientName;
@@ -29,14 +28,6 @@ public class CheckoutRequest {
         return paymentMethod;
     }
 
-    public String getTransactionCode() {
-        return transactionCode;
-    }
-
-    public String getPaymentNote() {
-        return paymentNote;
-    }
-
     public void setRecipientName(String recipientName) {
         this.recipientName = recipientName;
     }
@@ -55,13 +46,5 @@ public class CheckoutRequest {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
-    }
-
-    public void setTransactionCode(String transactionCode) {
-        this.transactionCode = transactionCode;
-    }
-
-    public void setPaymentNote(String paymentNote) {
-        this.paymentNote = paymentNote;
     }
 }

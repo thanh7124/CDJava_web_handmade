@@ -1,6 +1,7 @@
 package com.handmade.dto;
 
 import com.handmade.entity.Order;
+import com.handmade.entity.Payment;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,6 +14,10 @@ public class OrderResponse {
     private String address;
     private String note;
     private String paymentMethod;
+    private String paymentStatus;
+    private String transactionCode;
+    private String paymentNote;
+    private LocalDateTime paidDate;
     private String status;
     private BigDecimal subtotal;
     private BigDecimal shippingFee;
@@ -29,11 +34,24 @@ public class OrderResponse {
         response.setAddress(order.getAddress());
         response.setNote(order.getNote());
         response.setPaymentMethod(order.getPaymentMethod());
+        response.setPaymentStatus(order.getPaymentStatus());
         response.setStatus(order.getStatus());
         response.setSubtotal(order.getSubtotal());
         response.setShippingFee(order.getShippingFee());
         response.setTotalAmount(order.getTotalAmount());
         response.setCreatedDate(order.getCreatedDate());
+
+        Payment payment = order.getPayment();
+
+        if (payment != null) {
+            response.setTransactionCode(payment.getTransactionCode());
+            response.setPaymentNote(payment.getNote());
+            response.setPaidDate(payment.getPaidDate());
+
+            if (payment.getPaymentStatus() != null) {
+                response.setPaymentStatus(payment.getPaymentStatus());
+            }
+        }
 
         response.setItems(
                 order.getItems()
@@ -67,6 +85,22 @@ public class OrderResponse {
 
     public String getPaymentMethod() {
         return paymentMethod;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public String getTransactionCode() {
+        return transactionCode;
+    }
+
+    public String getPaymentNote() {
+        return paymentNote;
+    }
+
+    public LocalDateTime getPaidDate() {
+        return paidDate;
     }
 
     public String getStatus() {
@@ -115,6 +149,22 @@ public class OrderResponse {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    public void setTransactionCode(String transactionCode) {
+        this.transactionCode = transactionCode;
+    }
+
+    public void setPaymentNote(String paymentNote) {
+        this.paymentNote = paymentNote;
+    }
+
+    public void setPaidDate(LocalDateTime paidDate) {
+        this.paidDate = paidDate;
     }
 
     public void setStatus(String status) {
