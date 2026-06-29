@@ -45,6 +45,7 @@ export function CartProvider({ children }) {
   async function loadCart() {
     if (!token) {
       setCartItems([]);
+      setCartError("");
       return;
     }
 
@@ -57,10 +58,20 @@ export function CartProvider({ children }) {
       syncCart(result);
     } catch (error) {
       console.error("Lỗi tải giỏ hàng:", error);
+      setCartItems([]);
+
+      if (
+        error?.message?.includes("đăng nhập") ||
+        error?.message?.includes("401") ||
+        error?.message?.includes("403")
+      ) {
+        setCartError("");
+        return;
+      }
+
       setCartError(
         error instanceof Error ? error.message : "Không thể tải giỏ hàng"
       );
-      setCartItems([]);
     } finally {
       setLoadingCart(false);
     }
