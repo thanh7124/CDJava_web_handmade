@@ -1,5 +1,15 @@
 package com.handmade.service;
 
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
+
 import com.handmade.dto.PageResponse;
 import com.handmade.dto.ProductRequest;
 import com.handmade.dto.ProductResponse;
@@ -126,6 +136,51 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    public String uploadProductImage(MultipartFile file) {
+    if (file == null || file.isEmpty()) {
+        throw new RuntimeException("Vui lòng chọn ảnh sản phẩm");
+    }
+
+    String contentType = file.getContentType();
+
+    if (contentType == null || !contentType.startsWith("image/")) {
+        throw new RuntimeException("File tải lên phải là hình ảnh");
+    }
+
+    try {
+        String originalFilename = StringUtils.cleanPath(
+                file.getOriginalFilename() == null ? "product" : file.getOriginalFilename()
+        );
+
+        String extension = "";
+
+        int dotIndex = originalFilename.lastIndexOf(".");
+        if (dotIndex >= 0) {
+            extension = originalFilename.substring(dotIndex).toLowerCase();
+        }
+
+        String fileName = "product-" + UUID.randomUUID() + extension;
+
+        Path uploadDir = Paths.get("uploads", "products")
+                .toAbsolutePath()
+                .normalize();
+
+        Files.createDirectories(uploadDir);
+
+        Path targetPath = uploadDir.resolve(fileName);
+
+        Files.copy(
+                file.getInputStream(),
+                targetPath,
+                StandardCopyOption.REPLACE_EXISTING
+        );
+
+        return "http://localhost:8080/uploads/products/" + fileName;
+        } 
+        catch (IOException exception) {
+        throw new RuntimeException("Không thể lưu ảnh sản phẩm");
+        }
+    }
     private void applyProductData(
             Product product,
             ProductRequest request,

@@ -7,6 +7,8 @@ import com.handmade.dto.ProductResponse;
 import com.handmade.service.ProductService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/products")
@@ -37,6 +39,20 @@ public class ProductController {
         return ApiResponse.ok(
                 "Lấy chi tiết sản phẩm thành công",
                 productService.getProductById(id)
+        );
+    }
+
+    @PostMapping(
+            value = "/upload-image",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> uploadProductImage(
+            @RequestParam("file") MultipartFile file
+    ) {
+        return ApiResponse.ok(
+                "Tải ảnh sản phẩm thành công",
+                productService.uploadProductImage(file)
         );
     }
 
