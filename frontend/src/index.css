@@ -182,7 +182,7 @@ img {
   justify-content: flex-end;
 }
 
-.nav-actions button,
+.nav-actions .icon-action-btn,
 .nav-actions .nav-cart-link {
   width: 40px;
   height: 40px;
@@ -196,7 +196,7 @@ img {
   transition: 0.2s ease;
 }
 
-.nav-actions button:hover,
+.nav-actions .icon-action-btn:hover,
 .nav-actions .nav-cart-link:hover {
   background: var(--primary-color) !important;
   color: white !important;
@@ -260,7 +260,7 @@ img {
     gap: 6px;
   }
 
-  .nav-actions button,
+  .nav-actions .icon-action-btn,
   .nav-actions .nav-cart-link {
     width: 36px;
     height: 36px;

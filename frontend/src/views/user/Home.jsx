@@ -178,21 +178,21 @@ function Home() {
               <>
                 <ProductSection
                   id="products"
-                  label="Sản phẩm nổi bật"
+                  label=""
                   title="Những món handmade được yêu thích"
                   products={featuredProducts}
                   viewTo="/products?sort=rating"
                 />
 
                 <ProductSection
-                  label="Bán chạy"
+                  label=""
                   title="Các sản phẩm được mua nhiều trong tuần"
                   products={bestSellerProducts}
                   viewTo="/products?sort=best-seller"
                 />
 
                 <ProductSection
-                  label="Mới về"
+                  label=""
                   title="Những mẫu handmade vừa được cập nhật"
                   products={newArrivalProducts}
                   viewTo="/products?sort=newest"

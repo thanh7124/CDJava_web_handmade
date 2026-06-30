@@ -84,7 +84,7 @@
   width: auto;
 }
 
-.logout-btn {
+.profile_logout_btn {
   width: 100%;
   margin-top: 14px;
 }
@@ -114,6 +114,78 @@
 .profile-card-header h2 {
   margin: 0;
   font-size: 22px;
+}
+
+.profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-right: 130px;
+}
+
+.avatar-picker {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  flex: 0 0 84px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 3px solid #f2e2d7;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 30px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.avatar-picker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.avatar-picker-overlay {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 7px 3px;
+  background: rgba(45, 28, 20, 0.76);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  transform: translateY(100%);
+  transition: transform 0.2s ease;
+}
+
+.avatar-picker:hover .avatar-picker-overlay,
+.avatar-picker:focus-within .avatar-picker-overlay,
+.avatar-picker.uploading .avatar-picker-overlay {
+  transform: translateY(0);
+}
+
+.avatar-picker.uploading {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.avatar-hint {
+  margin: 6px 0 0;
+  color: #8e7a6d;
+  font-size: 13px;
+}
+
+.avatar-message {
+  margin: -8px 0 24px;
 }
 
 .profile-card-header .profile-avatar {
@@ -206,6 +278,13 @@
   place-items: center;
   font-weight: 800;
   font-size: 18px;
+  overflow: hidden;
+}
+
+.sidebar-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .sidebar-greet {
@@ -466,6 +545,10 @@
   .profile-card-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .profile-identity {
+    padding-right: 0;
   }
   
   .sidebar-user-info {

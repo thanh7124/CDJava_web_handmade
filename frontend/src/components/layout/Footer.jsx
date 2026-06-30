@@ -1,6 +1,6 @@
 function Footer() {
   return (
-    <footer className="footer">
+    <footer style={{ marginTop: "50px" }} className="footer">
       <div>
         <h2>
           Handmade<span>Shop</span>

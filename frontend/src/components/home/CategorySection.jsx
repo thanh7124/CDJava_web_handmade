@@ -38,7 +38,7 @@ function CategorySection({ categories = [] }) {
     <section className="category-section" id="categories">
       <div className="category-section-top">
         <SectionHeading
-          label="Danh mục"
+          label=""
           title="Mua sắm theo sở thích của bạn"
         />
 

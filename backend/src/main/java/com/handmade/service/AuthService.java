@@ -8,6 +8,7 @@ import com.handmade.entity.User;
 import com.handmade.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class AuthService {
@@ -15,15 +16,18 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AvatarStorageService avatarStorageService;
 
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService
+            JwtService jwtService,
+            AvatarStorageService avatarStorageService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.avatarStorageService = avatarStorageService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -108,6 +112,25 @@ public class AuthService {
         return UserResponse.from(savedUser);
     }
 
+
+    @org.springframework.transaction.annotation.Transactional
+    public UserResponse updateAvatar(String email, MultipartFile avatar) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+        String oldAvatar = user.getAvatar();
+        String newAvatar = avatarStorageService.store(avatar);
+
+        try {
+            user.setAvatar(newAvatar);
+            User savedUser = userRepository.save(user);
+            avatarStorageService.delete(oldAvatar);
+            return UserResponse.from(savedUser);
+        } catch (RuntimeException exception) {
+            avatarStorageService.delete(newAvatar);
+            throw exception;
+        }
+    }
 
     private void validateRegisterRequest(RegisterRequest request) {
         if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {

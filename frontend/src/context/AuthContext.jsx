@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
-import { loginApi, registerApi, updateUser, updateProfileApi } from "../services/auth.service";
+import { loginApi, registerApi, updateProfileApi, uploadAvatarApi } from "../services/auth.service";
 
 const AuthContext = createContext(null);
 
@@ -88,6 +88,25 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
+  const updateUserAvatar = useCallback(async (file) => {
+    if (!user?.token) {
+      throw new Error("Vui lòng đăng nhập");
+    }
+
+    setLoading(true);
+    try {
+      const result = await uploadAvatarApi(user.token, file);
+      const authUser = {
+        ...result,
+        token: user.token,
+      };
+      setUser(authUser);
+      return authUser;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   const value = useMemo(
     () => ({
       user,
@@ -99,8 +118,9 @@ export function AuthProvider({ children }) {
       register,
       logout,
       updateUserProfile,
+      updateUserAvatar,
     }),
-    [user, loading, updateUserProfile]
+    [user, loading, updateUserProfile, updateUserAvatar]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

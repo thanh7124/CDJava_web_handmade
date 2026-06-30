@@ -7,6 +7,7 @@ import com.handmade.dto.RegisterRequest;
 import com.handmade.dto.UserResponse;
 import com.handmade.service.AuthService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -72,5 +73,20 @@ public class AuthController {
         );
         
         return ApiResponse.ok("Cập nhật thông tin thành công", updated);
+    }
+
+    @PutMapping(value = "/avatar", consumes = "multipart/form-data")
+    public ApiResponse<UserResponse> updateAvatar(
+            java.security.Principal principal,
+            @RequestPart("avatar") MultipartFile avatar
+    ) {
+        if (principal == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        return ApiResponse.ok(
+                "Cập nhật ảnh đại diện thành công",
+                authService.updateAvatar(principal.getName(), avatar)
+        );
     }
 }

@@ -42,7 +42,7 @@ export default function Sidebar() {
         </nav>
 
         <div className="sidebar-logout">
-          <button type="button" className="logout-btn" onClick={handleLogout}>
+          <button type="button" className="sidebar_logout_btn" onClick={handleLogout}>
             Đăng xuất
           </button>
         </div>

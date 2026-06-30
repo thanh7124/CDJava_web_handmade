@@ -5,7 +5,7 @@ import { useFavorite } from "../../context/FavoriteContext";
 import { useCart } from "../../context/CartContext";
 import { fetchProductById, formatCurrency } from "../../services/product.service";
 import { orderService } from "../../services/order.service";
-import { changePasswordApi } from "../../services/auth.service";
+import { changePasswordApi, resolveAvatarUrl } from "../../services/auth.service";
 import { getAddresses, addAddress, deleteAddress, setDefaultAddress } from "../../services/address.service";
 import ProductCard from "../../components/product/ProductCard";
 
@@ -15,7 +15,7 @@ import Footer from "../../components/layout/Footer";
 import "./Profile.css";
 
 function Profile() {
-  const { user, logout, updateUserProfile } = useAuth();
+  const { user, logout, updateUserProfile, updateUserAvatar } = useAuth();
   const { favoriteIds } = useFavorite();
   const { cartItems, cartTotal } = useCart();
   const navigate = useNavigate();
@@ -40,6 +40,10 @@ function Profile() {
 
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState("success");
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarMessage, setAvatarMessage] = useState(null);
+  const [avatarMessageType, setAvatarMessageType] = useState("success");
 
 
   const [favProducts, setFavProducts] = useState([]);
@@ -151,6 +155,41 @@ function Profile() {
     }
   };
 
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setAvatarMessage("Chỉ chấp nhận ảnh JPG, PNG hoặc WebP.");
+      setAvatarMessageType("error");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarMessage("Ảnh đại diện không được vượt quá 2 MB.");
+      setAvatarMessageType("error");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreview(previewUrl);
+    setAvatarUploading(true);
+    setAvatarMessage(null);
+
+    try {
+      await updateUserAvatar(file);
+      setAvatarMessage("Cập nhật ảnh đại diện thành công.");
+      setAvatarMessageType("success");
+    } catch (error) {
+      setAvatarMessage(error.message || "Không thể cập nhật ảnh đại diện.");
+      setAvatarMessageType("error");
+    } finally {
+      setAvatarUploading(false);
+      setAvatarPreview("");
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
+
   const handleAddAddress = async (e) => {
     e.preventDefault();
     setAddrMessage(null);
@@ -238,8 +277,8 @@ function Profile() {
     return null;
   }
 
-  const joinDate = user.createdAt
-    ? new Date(user.createdAt).toLocaleDateString("vi-VN")
+  const joinDate = user.createdDate
+    ? new Date(user.createdDate).toLocaleDateString("vi-VN")
     : "Không có";
 
 
@@ -249,10 +288,30 @@ function Profile() {
         return (
           <div className="profile-card">
             <div className="profile-card-header">
-
-              <div>
-                <h2>{user.fullName}</h2>
-
+              <div className="profile-identity">
+                <label className={`avatar-picker ${avatarUploading ? "uploading" : ""}`}>
+                  {avatarPreview || user.avatar ? (
+                    <img
+                      src={avatarPreview || resolveAvatarUrl(user.avatar)}
+                      alt={`Ảnh đại diện của ${user.fullName}`}
+                    />
+                  ) : (
+                    <span>{user.fullName.slice(0, 1).toUpperCase()}</span>
+                  )}
+                  <span className="avatar-picker-overlay">
+                    {avatarUploading ? "Đang tải..." : "Đổi ảnh"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleAvatarChange}
+                    disabled={avatarUploading}
+                    aria-label="Chọn ảnh đại diện"
+                  />
+                </label>
+                <div>
+                  <h2>{user.fullName}</h2>
+                </div>
               </div>
               <button
                 type="button"
@@ -265,6 +324,12 @@ function Profile() {
                 {editMode ? "Hủy" : "Chỉnh sửa"}
               </button>
             </div>
+
+            {avatarMessage && (
+              <div className={`profile-message ${avatarMessageType} avatar-message`}>
+                {avatarMessage}
+              </div>
+            )}
 
             <form className="profile-form" onSubmit={handleSave}>
               <div className="profile-field">
@@ -685,7 +750,13 @@ function Profile() {
           {/* SIDEBAR ĐIỀU HƯỚNG */}
           <aside className="profile-sidebar">
             <div className="sidebar-user-info">
-              <div className="sidebar-avatar">{user.fullName.slice(0, 1).toUpperCase()}</div>
+              <div className="sidebar-avatar">
+                {user.avatar ? (
+                  <img src={resolveAvatarUrl(user.avatar)} alt="" />
+                ) : (
+                  user.fullName.slice(0, 1).toUpperCase()
+                )}
+              </div>
               <div>
                 <p className="sidebar-greet">Tài khoản của</p>
                 <h3 className="sidebar-name">{user.fullName}</h3>
@@ -739,7 +810,7 @@ function Profile() {
 
             <hr className="sidebar-divider" />
 
-            <button type="button" className="btn btn-secondary logout-btn" onClick={handleLogout}>
+            <button type="button" className="btn btn-secondary profile_logout_btn" onClick={handleLogout}>
               Đăng xuất
             </button>
           </aside>

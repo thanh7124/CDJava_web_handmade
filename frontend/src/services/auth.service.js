@@ -123,4 +123,27 @@ export async function updateProfileApi(token, payload) {
   });
 
   return handleResponse(response);
-}
+}
+
+export async function uploadAvatarApi(token, file) {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const response = await fetch(`${API_URL}/auth/avatar`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  return handleResponse(response);
+}
+
+export function resolveAvatarUrl(avatar) {
+  if (!avatar) return "";
+  if (/^https?:\/\//i.test(avatar) || avatar.startsWith("data:") || avatar.startsWith("blob:")) {
+    return avatar;
+  }
+  return `${API_URL.replace(/\/api$/, "")}${avatar.startsWith("/") ? "" : "/"}${avatar}`;
+}
