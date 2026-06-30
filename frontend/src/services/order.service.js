@@ -8,10 +8,29 @@ function getAuthHeaders(token) {
 }
 
 async function handleResponse(response) {
-  const data = await response.json();
+  const responseText = await response.text();
+  let data = null;
 
-  if (!response.ok || data.code !== 200) {
-    throw new Error(data.message || "Có lỗi xảy ra khi xử lý đơn hàng");
+  if (responseText) {
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      throw new Error(
+        `Máy chủ trả về dữ liệu không hợp lệ (${response.status} ${response.statusText})`
+      );
+    }
+  }
+
+  if (!response.ok || data?.code !== 200) {
+    if (data?.message) {
+      throw new Error(data.message);
+    }
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Phiên đăng nhập đã hết hạn hoặc bạn không có quyền thực hiện thao tác này");
+    }
+    throw new Error(
+      `Không thể xử lý đơn hàng (${response.status} ${response.statusText || "Không có phản hồi"})`
+    );
   }
 
   return data.result;
@@ -44,14 +63,26 @@ export async function fetchOrderByIdApi(token, orderId) {
 
   return handleResponse(response);
 }
+
+export async function cancelOrderApi(token, orderId) {
+  const response = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
+    method: "PUT",
+    headers: getAuthHeaders(token),
+  });
+
+  return handleResponse(response);
+}
+
 export const OrderService = {
   fetchMyOrders: fetchMyOrdersApi,
   fetchOrderById: fetchOrderByIdApi,
   checkout: checkoutApi,
+  cancelOrder: cancelOrderApi,
 };
 
 export const orderService = {
   fetchMyOrders: fetchMyOrdersApi,
   fetchOrderById: fetchOrderByIdApi,
   checkout: checkoutApi,
+  cancelOrder: cancelOrderApi,
 };

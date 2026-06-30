@@ -8,6 +8,7 @@ import { orderService } from "../../services/order.service";
 import { changePasswordApi, resolveAvatarUrl } from "../../services/auth.service";
 import { getAddresses, addAddress, deleteAddress, setDefaultAddress } from "../../services/address.service";
 import ProductCard from "../../components/product/ProductCard";
+import CancelOrderModal from "../../components/order/CancelOrderModal";
 
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
@@ -52,6 +53,10 @@ function Profile() {
 
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [cancellingOrderId, setCancellingOrderId] = useState(null);
+  const [cancelTargetOrderId, setCancelTargetOrderId] = useState(null);
+  const [orderMessage, setOrderMessage] = useState(null);
+  const [orderMessageType, setOrderMessageType] = useState("success");
 
 
   const [oldPassword, setOldPassword] = useState("");
@@ -268,6 +273,28 @@ function Profile() {
     }
   };
 
+  const handleCancelOrder = async () => {
+    const orderId = cancelTargetOrderId;
+    if (!orderId) return;
+    try {
+      setCancellingOrderId(orderId);
+      setOrderMessage(null);
+      const updatedOrder = await orderService.cancelOrder(user.token, orderId);
+      setOrders((current) =>
+        current.map((order) => (order.id === orderId ? updatedOrder : order))
+      );
+      setOrderMessage("Đã hủy đơn hàng thành công.");
+      setOrderMessageType("success");
+      setCancelTargetOrderId(null);
+    } catch (error) {
+      setOrderMessage(error.message || "Không thể hủy đơn hàng.");
+      setOrderMessageType("error");
+      setCancelTargetOrderId(null);
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -387,7 +414,7 @@ function Profile() {
           { id: "all", label: "Tất cả" },
           { id: "pending", label: "Chờ thanh toán" },
           { id: "shipping", label: "Vận chuyển" },
-          { id: "completed", label: "Hoàn thành" },
+          { id: "delivered", label: "Hoàn thành" },
           { id: "cancelled", label: "Đã hủy" },
         ];
 
@@ -395,7 +422,7 @@ function Profile() {
           all: "Bạn chưa có đơn hàng nào.",
           pending: "Không có đơn hàng đang chờ thanh toán.",
           shipping: "Không có đơn hàng đang vận chuyển.",
-          completed: "Bạn chưa có đơn hàng đã hoàn thành.",
+          delivered: "Bạn chưa có đơn hàng đã hoàn thành.",
           cancelled: "Bạn chưa có đơn hàng đã hủy.",
         };
 
@@ -408,6 +435,11 @@ function Profile() {
             <div className="order-header">
               <h2>Đơn mua</h2>
             </div>
+            {orderMessage && (
+              <div className={`profile-message ${orderMessageType}`}>
+                {orderMessage}
+              </div>
+            )}
             <div className="order-tabs-mock">
               {orderTabs.map((tab) => (
                 <button
@@ -439,7 +471,19 @@ function Profile() {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666' }}>
                         <span>Ngày đặt: {new Date(order.createdDate).toLocaleDateString('vi-VN')}</span>
-                        <strong>Tổng tiền: {formatCurrency(order.totalPrice)}</strong>
+                        <div className="profile-order-actions">
+                          <strong>Tổng tiền: {formatCurrency(order.totalAmount ?? order.totalPrice)}</strong>
+                          {order.status === "PENDING" && (
+                            <button
+                              type="button"
+                              className="profile-order-cancel-btn"
+                              onClick={() => setCancelTargetOrderId(order.id)}
+                              disabled={cancellingOrderId === order.id}
+                            >
+                              {cancellingOrderId === order.id ? "Đang hủy..." : "Hủy đơn"}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -822,6 +866,13 @@ function Profile() {
 
         </div>
       </main>
+      <CancelOrderModal
+        open={cancelTargetOrderId !== null}
+        orderId={cancelTargetOrderId}
+        loading={cancellingOrderId !== null}
+        onClose={() => setCancelTargetOrderId(null)}
+        onConfirm={handleCancelOrder}
+      />
       <Footer />
     </div>
   );

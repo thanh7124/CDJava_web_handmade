@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight, Package, ShoppingBag } from "lucide-react";
+import { ChevronRight, Package, ShoppingBag, XCircle } from "lucide-react";
 
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
+import CancelOrderModal from "../../components/order/CancelOrderModal";
 import { useAuth } from "../../context/AuthContext";
-import { fetchMyOrdersApi } from "../../services/order.service";
+import { cancelOrderApi, fetchMyOrdersApi } from "../../services/order.service";
 import { formatCurrency } from "../../services/product.service";
 
 import "./Orders.css";
@@ -20,6 +21,7 @@ function getStatusLabel(status) {
     case "SHIPPING":
       return "Đang giao";
     case "COMPLETED":
+    case "DELIVERED":
       return "Hoàn thành";
     case "CANCELLED":
       return "Đã hủy";
@@ -47,6 +49,9 @@ function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [cancellingId, setCancellingId] = useState(null);
+  const [cancelTargetId, setCancelTargetId] = useState(null);
 
   async function loadOrders() {
     if (!user?.token) return;
@@ -76,6 +81,30 @@ function Orders() {
     loadOrders();
   }, [isAuthenticated, user?.token]);
 
+  async function handleCancel() {
+    const orderId = cancelTargetId;
+    if (!orderId) return;
+    try {
+      setCancellingId(orderId);
+      setError("");
+      setMessage("");
+
+      const updatedOrder = await cancelOrderApi(user.token, orderId);
+      setOrders((current) =>
+        current.map((item) => (item.id === orderId ? updatedOrder : item))
+      );
+      setMessage("Đã hủy đơn hàng thành công.");
+      setCancelTargetId(null);
+    } catch (cancelError) {
+      setError(
+        cancelError instanceof Error ? cancelError.message : "Không thể hủy đơn hàng"
+      );
+      setCancelTargetId(null);
+    } finally {
+      setCancellingId(null);
+    }
+  }
+
   return (
     <div className="home-page orders-page">
       <Header />
@@ -103,6 +132,7 @@ function Orders() {
         {loading && <div className="orders-state">Đang tải đơn hàng...</div>}
 
         {error && <div className="orders-error">{error}</div>}
+        {message && <div className="orders-success">{message}</div>}
 
         {!loading && !error && orders.length === 0 && (
           <div className="orders-empty">
@@ -152,13 +182,34 @@ function Orders() {
                     <strong>{formatCurrency(order.totalAmount)}</strong>
                   </div>
 
-                  <Link to={`/orders/${order.id}`}>Xem chi tiết</Link>
+                  <div className="order-card-actions">
+                    {order.status === "PENDING" && (
+                      <button
+                        type="button"
+                        className="order-cancel-btn"
+                        onClick={() => setCancelTargetId(order.id)}
+                        disabled={cancellingId === order.id}
+                      >
+                        <XCircle size={16} />
+                        {cancellingId === order.id ? "Đang hủy..." : "Hủy đơn"}
+                      </button>
+                    )}
+                    <Link to={`/orders/${order.id}`}>Xem chi tiết</Link>
+                  </div>
                 </div>
               </article>
             ))}
           </div>
         )}
       </main>
+
+      <CancelOrderModal
+        open={cancelTargetId !== null}
+        orderId={cancelTargetId}
+        loading={cancellingId !== null}
+        onClose={() => setCancelTargetId(null)}
+        onConfirm={handleCancel}
+      />
 
       <Footer />
     </div>

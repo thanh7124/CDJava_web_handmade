@@ -41,6 +41,7 @@ public class OrderService {
     private static final String PAYMENT_PAID = "PAID";
     private static final String PAYMENT_FAILED = "FAILED";
     private static final String PAYMENT_REFUNDED = "REFUNDED";
+    private static final String PAYMENT_CANCELLED = "CANCELLED";
 
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
@@ -212,6 +213,40 @@ public OrderResponse updateOrderInfo(Long id, AdminOrderUpdateRequest request) {
     }
 
     @Transactional
+    public OrderResponse cancelMyOrder(Long id) {
+        User user = getCurrentUser();
+
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Bạn không có quyền hủy đơn hàng này");
+        }
+
+        if (!STATUS_PENDING.equals(order.getStatus())) {
+            throw new RuntimeException("Chỉ có thể hủy đơn hàng đang chờ xác nhận");
+        }
+
+        Payment payment = order.getPayment();
+        boolean isPaid = PAYMENT_PAID.equals(order.getPaymentStatus())
+                || (payment != null && PAYMENT_PAID.equals(payment.getPaymentStatus()));
+
+        if (isPaid) {
+            throw new RuntimeException("Đơn hàng đã thanh toán, vui lòng liên hệ cửa hàng để được hỗ trợ");
+        }
+
+        order.setStatus(STATUS_CANCELLED);
+        order.setPaymentStatus(PAYMENT_CANCELLED);
+
+        if (payment != null) {
+            payment.setPaymentStatus(PAYMENT_CANCELLED);
+            payment.setNote("Khách hàng đã hủy đơn trước khi xác nhận");
+        }
+
+        return OrderResponse.from(orderRepository.save(order));
+    }
+
+    @Transactional
     public OrderResponse updateOrderStatus(Long id, OrderStatusUpdateRequest request) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
@@ -357,7 +392,8 @@ public OrderResponse updateOrderInfo(Long id, AdminOrderUpdateRequest request) {
                 || PAYMENT_PENDING.equals(paymentStatus)
                 || PAYMENT_PAID.equals(paymentStatus)
                 || PAYMENT_FAILED.equals(paymentStatus)
-                || PAYMENT_REFUNDED.equals(paymentStatus);
+                || PAYMENT_REFUNDED.equals(paymentStatus)
+                || PAYMENT_CANCELLED.equals(paymentStatus);
     }
 
     private User getCurrentUser() {

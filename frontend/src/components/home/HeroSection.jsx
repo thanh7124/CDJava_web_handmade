@@ -16,7 +16,6 @@ function HeroSection() {
   return (
     <section className="hero-section">
       <div className="hero-content">
-        <p className="hero-label">Sản phẩm thủ công độc đáo</p>
 
         <h1>Mỗi món đồ handmade là một câu chuyện nhỏ được làm bằng sự tỉ mỉ.</h1>
 

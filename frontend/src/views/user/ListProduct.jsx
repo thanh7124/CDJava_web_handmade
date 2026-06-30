@@ -174,44 +174,49 @@ function ListProduct() {
             <p style={{ marginTop: 32 }}>Chưa có sản phẩm nào.</p>
           )}
 
-          {totalPages > 1 && (
-  <div className="pagination">
-    <button
-      type="button"
-      className="pagination-btn"
-      disabled={page <= 1}
-      onClick={() => setPage(page - 1)}
-    >
-      ‹
-    </button>
+          {!loading && (
+            <div className="pagination" aria-label="Phân trang sản phẩm">
+              {page > 1 && (
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setPage(page - 1)}
+                  aria-label="Trang trước"
+                >
+                  ‹
+                </button>
+              )}
 
-    <div className="pagination-pages">
-      {Array.from({ length: totalPages }, (_, index) => {
-        const pageNumber = index + 1;
+              <div className="pagination-pages">
+                {Array.from({ length: Math.max(1, totalPages) }, (_, index) => {
+                  const pageNumber = index + 1;
 
-        return (
-          <button
-            type="button"
-            key={pageNumber}
-            className={`pagination-page ${page === pageNumber ? "active" : ""}`}
-            onClick={() => setPage(pageNumber)}
-          >
-            {pageNumber}
-          </button>
-        );
-      })}
-    </div>
+                  return (
+                    <button
+                      type="button"
+                      key={pageNumber}
+                      className={`pagination-page ${page === pageNumber ? "active" : ""}`}
+                      onClick={() => setPage(pageNumber)}
+                      aria-current={page === pageNumber ? "page" : undefined}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                })}
+              </div>
 
-    <button
-      type="button"
-      className="pagination-btn"
-      disabled={page >= totalPages}
-      onClick={() => setPage(page + 1)}
-    >
-      ›
-    </button>
-  </div>
-)}
+              {page < Math.max(1, totalPages) && (
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setPage(page + 1)}
+                  aria-label="Trang sau"
+                >
+                  ›
+                </button>
+              )}
+            </div>
+          )}
         </section>
       </main>
 

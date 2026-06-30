@@ -41,4 +41,12 @@ public class OrderController {
                 orderService.checkout(request)
         );
     }
+
+    @PutMapping("/{id}/cancel")
+    public ApiResponse<OrderResponse> cancelOrder(@PathVariable Long id) {
+        return ApiResponse.ok(
+                "Hủy đơn hàng thành công",
+                orderService.cancelMyOrder(id)
+        );
+    }
 }

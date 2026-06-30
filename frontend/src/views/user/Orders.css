@@ -93,6 +93,16 @@
   font-weight: 800;
 }
 
+.orders-success {
+  margin-bottom: 18px;
+  padding: 16px 20px;
+  border: 1px solid #bfe3ca;
+  border-radius: 18px;
+  background: #eaf8ef;
+  color: #237a40;
+  font-weight: 800;
+}
+
 .orders-empty {
   padding: 70px 24px;
   text-align: center;
@@ -171,7 +181,8 @@
   color: #2878bd !important;
 }
 
-.order-status.completed {
+.order-status.completed,
+.order-status.delivered {
   background: #eaf8ef;
   color: #27ae60 !important;
 }
@@ -179,6 +190,14 @@
 .order-status.cancelled {
   background: #fdeaea;
   color: #c0392b !important;
+}
+
+.order-detail-status-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .order-products-preview {
@@ -229,6 +248,12 @@
   font-size: 22px;
 }
 
+.order-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .order-card-bottom a {
   height: 42px;
   padding: 0 18px;
@@ -239,6 +264,31 @@
   align-items: center;
   text-decoration: none;
   font-weight: 900;
+}
+
+.order-cancel-btn {
+  height: 42px;
+  padding: 0 18px;
+  border: 1px solid #efc3c3;
+  border-radius: 999px;
+  background: #fff;
+  color: #b83232;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.order-cancel-btn:hover:not(:disabled) {
+  background: #b83232;
+  color: #fff;
+}
+
+.order-cancel-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .order-detail-layout {
@@ -378,6 +428,10 @@
   .order-detail-side {
     position: static;
   }
+
+  .order-detail-status-actions {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 640px) {
@@ -389,6 +443,11 @@
   .order-card-bottom {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .order-card-actions {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .order-detail-item {

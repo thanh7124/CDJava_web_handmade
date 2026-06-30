@@ -435,6 +435,34 @@
   animation: fadeIn 0.28s ease-out;
 }
 
+.profile-order-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.profile-order-cancel-btn {
+  padding: 7px 14px;
+  border: 1px solid #efc3c3;
+  border-radius: 999px;
+  background: #fff;
+  color: #b83232;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.profile-order-cancel-btn:hover:not(:disabled) {
+  background: #b83232;
+  color: #fff;
+}
+
+.profile-order-cancel-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
