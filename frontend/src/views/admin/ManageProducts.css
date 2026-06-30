@@ -407,3 +407,27 @@
     grid-column: auto;
   }
 }
+.product-image-field {
+  gap: 12px;
+}
+
+.product-image-field input[type="file"] {
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.product-image-preview {
+  width: 160px;
+  height: 160px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: #fffaf6;
+}
+
+.product-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

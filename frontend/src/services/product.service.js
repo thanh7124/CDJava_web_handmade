@@ -93,6 +93,37 @@ export function formatCurrency(value) {
 
 const API_URL = "http://localhost:8080/api";
 
+const BACKEND_URL = "http://localhost:8080";
+
+export const FALLBACK_PRODUCT_IMAGE =
+  "https://placehold.co/400x400?text=Handmade";
+
+export function getProductImageUrl(image) {
+  if (!image) return FALLBACK_PRODUCT_IMAGE;
+
+  const value = String(image).trim();
+
+  if (!value) return FALLBACK_PRODUCT_IMAGE;
+
+  // Ảnh online
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  // DB lưu dạng /uploads/products/abc.jpg
+  if (value.startsWith("/uploads/")) {
+    return `${BACKEND_URL}${value}`;
+  }
+
+  // DB lưu dạng uploads/products/abc.jpg
+  if (value.startsWith("uploads/")) {
+    return `${BACKEND_URL}/${value}`;
+  }
+
+  // DB chỉ lưu tên file: abc.jpg
+  return `${BACKEND_URL}/uploads/products/${value}`;
+}
+
 export async function fetchProductPage({
   search = "",
   categoryId = "",

@@ -3,6 +3,10 @@ import { Link } from "react-router-dom";
 import "./ProductCard.css";
 import { formatCurrency } from "../../services/product.service";
 import { useFavorite } from "../../context/FavoriteContext";
+import {
+  getProductImageUrl,
+  FALLBACK_PRODUCT_IMAGE,
+} from "../../services/product.service";
 
 function ProductCard({ product }) {
   const { isFavorite, toggleFavorite } = useFavorite();
@@ -17,7 +21,13 @@ function ProductCard({ product }) {
   return (
     <Link to={`/products/${product.id}`} className="product-card">
       <div className="product-image">
-        <img src={product.image} alt={product.name} />
+        <img
+          src={getProductImageUrl(product.image || product.images?.[0])}
+          alt={product.name}
+          onError={(event) => {
+            event.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+          }}
+        />
         <span>{product.badge}</span>
 
         <button

@@ -7,8 +7,13 @@ import {
   fetchAdminProduct,
   fetchCategoriesApi,
   updateAdminProduct,
+  uploadProductImage,
 } from "../../services/adminProduct.service";
-import { formatCurrency } from "../../services/product.service";
+import {
+  formatCurrency,
+  getProductImageUrl,
+  FALLBACK_PRODUCT_IMAGE,
+} from "../../services/product.service";
 import "./ManageProducts.css";
 
 const emptyForm = {
@@ -52,6 +57,9 @@ export default function AdminProductDetail() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+
   const categoryOptions = useMemo(
     () => categories.map((item) => ({ value: String(item.id), label: item.name })),
     [categories]
@@ -63,6 +71,8 @@ export default function AdminProductDetail() {
   ];
 
   const syncForm = (product) => {
+    const image = product?.image || product?.images?.[0] || "";
+
     setForm({
       name: product?.name || "",
       slug: product?.slug || "",
@@ -72,11 +82,14 @@ export default function AdminProductDetail() {
       sold: String(product?.sold ?? 0),
       stock: String(product?.stock ?? 0),
       badge: product?.badge || "",
-      image: product?.image || "",
+      image,
       description: product?.description || "",
       categoryId: String(product?.categoryId || ""),
       active: Boolean(product?.active),
     });
+
+    setImageFile(null);
+    setImagePreview(image);
   };
 
   const loadData = async () => {
@@ -104,10 +117,36 @@ export default function AdminProductDetail() {
 
   const handleChange = (field) => (event) => {
     const value = field === "active" ? event.target.value === "true" : event.target.value;
+
     setForm((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleImageFileChange = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setImageFile(null);
+      setImagePreview(form.image || "");
+      return;
+    }
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleImageUrlChange = (event) => {
+    const value = event.target.value;
+
+    setForm((prev) => ({
+      ...prev,
+      image: value,
+    }));
+
+    setImageFile(null);
+    setImagePreview(value);
   };
 
   const handleStartEdit = () => {
@@ -128,6 +167,12 @@ export default function AdminProductDetail() {
     setError("");
 
     try {
+      let imageUrl = form.image?.trim() || "";
+
+      if (imageFile) {
+        imageUrl = await uploadProductImage(token, imageFile);
+      }
+
       const payload = {
         ...form,
         slug: form.slug?.trim() ? form.slug.trim() : slugify(form.name),
@@ -138,10 +183,12 @@ export default function AdminProductDetail() {
         stock: Number(form.stock),
         categoryId: Number(form.categoryId),
         active: Boolean(form.active),
-        images: form.image ? [form.image.trim()] : [],
+        image: imageUrl,
+        images: imageUrl ? [imageUrl] : [],
       };
 
       const updated = await updateAdminProduct(token, id, payload);
+
       setDetail(updated);
       syncForm(updated);
       setEditing(false);
@@ -160,12 +207,19 @@ export default function AdminProductDetail() {
     ? new Date(detail.updatedDate).toLocaleString("vi-VN")
     : "Chưa có";
 
+  const currentImage = detail?.image || detail?.images?.[0];
+
   return (
     <div className="manage-products-page">
       <div className="admin-dashboard-layout">
         <Sidebar />
+
         <main className="manage-products-content">
-          <button className="user-detail-back" type="button" onClick={() => navigate("/manage-products")}>
+          <button
+            className="user-detail-back"
+            type="button"
+            onClick={() => navigate("/manage-products")}
+          >
             ← Quay lại danh sách
           </button>
 
@@ -174,6 +228,7 @@ export default function AdminProductDetail() {
               <p className="page-label">Quản lý sản phẩm</p>
               <h1 className="page-title">Chi tiết sản phẩm</h1>
             </div>
+
             {detail && !editing ? (
               <button className="page-action-btn" type="button" onClick={handleStartEdit}>
                 Chỉnh sửa
@@ -182,26 +237,52 @@ export default function AdminProductDetail() {
           </header>
 
           {error && <div className="auth-error">{error}</div>}
-          {!error && !detail && <div className="empty-state">Đang tải chi tiết sản phẩm...</div>}
+
+          {!error && !detail && (
+            <div className="empty-state">Đang tải chi tiết sản phẩm...</div>
+          )}
 
           {detail ? (
             <article className="product-detail-card">
               <div className="product-detail-hero">
                 <div className="product-detail-image-wrap">
-                  <img className="product-detail-image" src={detail.image} alt={detail.name} />
+                  <img
+                    className="product-detail-image"
+                    src={getProductImageUrl(currentImage)}
+                    alt={detail.name}
+                    onError={(event) => {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                    }}
+                  />
                 </div>
+
                 <div className="product-detail-summary">
                   <p className="page-label">Sản phẩm #{detail.id}</p>
                   <h2>{show(detail.name)}</h2>
                   <p className="product-detail-description">{show(detail.description)}</p>
+
                   <div className="product-detail-price-row">
-                    <strong>{detail.price != null ? formatCurrency(detail.price) : "Chưa cập nhật"}</strong>
+                    <strong>
+                      {detail.price != null ? formatCurrency(detail.price) : "Chưa cập nhật"}
+                    </strong>
+
                     {detail.oldPrice ? <span>{formatCurrency(detail.oldPrice)}</span> : null}
                   </div>
+
                   <div className="product-detail-meta-chips">
-                    <span className={`status-pill ${detail.stock > 20 ? "in-stock" : detail.stock > 5 ? "low-stock" : "out-of-stock"}`}>
+                    <span
+                      className={`status-pill ${
+                        detail.stock > 20
+                          ? "in-stock"
+                          : detail.stock > 5
+                          ? "low-stock"
+                          : "out-of-stock"
+                      }`}
+                    >
                       {detail.active ? "Hoạt động" : "Tắt"}
                     </span>
+
                     <span className="product-chip">{show(detail.categoryName)}</span>
                     <span className="product-chip">Kho: {detail.stock ?? 0}</span>
                   </div>
@@ -214,34 +295,47 @@ export default function AdminProductDetail() {
                     <label>Tên</label>
                     <input value={form.name} onChange={handleChange("name")} />
                   </div>
+
                   <div className="filter-field">
                     <label>Slug</label>
                     <input value={form.slug} onChange={handleChange("slug")} />
                   </div>
+
                   <div className="filter-field">
                     <label>Giá</label>
                     <input type="number" value={form.price} onChange={handleChange("price")} />
                   </div>
+
                   <div className="filter-field">
                     <label>Giá cũ</label>
                     <input type="number" value={form.oldPrice} onChange={handleChange("oldPrice")} />
                   </div>
+
                   <div className="filter-field">
                     <label>Đánh giá</label>
-                    <input type="number" step="0.1" value={form.rating} onChange={handleChange("rating")} />
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={form.rating}
+                      onChange={handleChange("rating")}
+                    />
                   </div>
+
                   <div className="filter-field">
                     <label>Đã bán</label>
                     <input type="number" value={form.sold} onChange={handleChange("sold")} />
                   </div>
+
                   <div className="filter-field">
                     <label>Kho</label>
                     <input type="number" value={form.stock} onChange={handleChange("stock")} />
                   </div>
+
                   <div className="filter-field">
                     <label>Badge</label>
                     <input value={form.badge} onChange={handleChange("badge")} />
                   </div>
+
                   <div className="filter-field">
                     <label>Danh mục</label>
                     <CustomSelect
@@ -251,6 +345,7 @@ export default function AdminProductDetail() {
                       searchable
                     />
                   </div>
+
                   <div className="filter-field">
                     <label>Trạng thái</label>
                     <CustomSelect
@@ -259,10 +354,32 @@ export default function AdminProductDetail() {
                       options={activeOptions}
                     />
                   </div>
-                  <div className="filter-field product-detail-full">
-                    <label>Ảnh</label>
-                    <input value={form.image} onChange={handleChange("image")} />
+
+                  <div className="filter-field product-detail-full product-image-field">
+                    <label>Ảnh sản phẩm</label>
+
+                    <input type="file" accept="image/*" onChange={handleImageFileChange} />
+
+                    <input
+                      value={form.image}
+                      onChange={handleImageUrlChange}
+                      placeholder="Hoặc dán URL ảnh sản phẩm"
+                    />
+
+                    {imagePreview && (
+                      <div className="product-image-preview">
+                        <img
+                          src={getProductImageUrl(imagePreview)}
+                          alt="Xem trước sản phẩm"
+                          onError={(event) => {
+                            event.currentTarget.onerror = null;
+                            event.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
+
                   <div className="filter-field product-detail-full">
                     <label>Mô tả</label>
                     <textarea
@@ -272,27 +389,73 @@ export default function AdminProductDetail() {
                       rows={5}
                     />
                   </div>
+
                   <div className="user-detail-actions">
                     <button className="action-btn edit" type="submit" disabled={saving}>
                       {saving ? "Đang lưu..." : "Lưu thay đổi"}
                     </button>
-                    <button className="action-btn delete" type="button" onClick={handleCancelEdit} disabled={saving}>
+
+                    <button
+                      className="action-btn delete"
+                      type="button"
+                      onClick={handleCancelEdit}
+                      disabled={saving}
+                    >
                       Hủy
                     </button>
                   </div>
                 </form>
               ) : (
                 <div className="product-detail-grid">
-                  <div className="product-detail-item"><span>ID</span><strong>{detail.id}</strong></div>
-                  <div className="product-detail-item"><span>Slug</span><strong>{show(detail.slug)}</strong></div>
-                  <div className="product-detail-item"><span>Danh mục</span><strong>{show(detail.categoryName)}</strong></div>
-                  <div className="product-detail-item"><span>Trạng thái</span><strong>{detail.active ? "Hoạt động" : "Tắt"}</strong></div>
-                  <div className="product-detail-item"><span>Kho</span><strong>{detail.stock ?? 0}</strong></div>
-                  <div className="product-detail-item"><span>Đã bán</span><strong>{detail.sold ?? 0}</strong></div>
-                  <div className="product-detail-item"><span>Đánh giá</span><strong>{detail.rating ?? 0}</strong></div>
-                  <div className="product-detail-item"><span>Badge</span><strong>{show(detail.badge)}</strong></div>
-                  <div className="product-detail-item"><span>Ngày tạo</span><strong>{createdDate}</strong></div>
-                  <div className="product-detail-item"><span>Cập nhật</span><strong>{updatedDate}</strong></div>
+                  <div className="product-detail-item">
+                    <span>ID</span>
+                    <strong>{detail.id}</strong>
+                  </div>
+
+                  <div className="product-detail-item">
+                    <span>Slug</span>
+                    <strong>{show(detail.slug)}</strong>
+                  </div>
+
+                  <div className="product-detail-item">
+                    <span>Danh mục</span>
+                    <strong>{show(detail.categoryName)}</strong>
+                  </div>
+
+                  <div className="product-detail-item">
+                    <span>Trạng thái</span>
+                    <strong>{detail.active ? "Hoạt động" : "Tắt"}</strong>
+                  </div>
+
+                  <div className="product-detail-item">
+                    <span>Kho</span>
+                    <strong>{detail.stock ?? 0}</strong>
+                  </div>
+
+                  <div className="product-detail-item">
+                    <span>Đã bán</span>
+                    <strong>{detail.sold ?? 0}</strong>
+                  </div>
+
+                  <div className="product-detail-item">
+                    <span>Đánh giá</span>
+                    <strong>{detail.rating ?? 0}</strong>
+                  </div>
+
+                  <div className="product-detail-item">
+                    <span>Badge</span>
+                    <strong>{show(detail.badge)}</strong>
+                  </div>
+
+                  <div className="product-detail-item">
+                    <span>Ngày tạo</span>
+                    <strong>{createdDate}</strong>
+                  </div>
+
+                  <div className="product-detail-item">
+                    <span>Cập nhật</span>
+                    <strong>{updatedDate}</strong>
+                  </div>
                 </div>
               )}
             </article>

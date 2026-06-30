@@ -9,6 +9,7 @@ import {
   fetchAdminProducts,
   fetchCategoriesApi,
   updateAdminProduct,
+  uploadProductImage,
 } from "../../services/adminProduct.service";
 import { formatCurrency } from "../../services/product.service";
 import "./ManageProducts.css";
@@ -38,7 +39,21 @@ function slugify(value) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+const FALLBACK_IMAGE = "https://placehold.co/400x400?text=Handmade";
 
+function getImageUrl(image) {
+  if (!image) return FALLBACK_IMAGE;
+
+  if (image.startsWith("http://") || image.startsWith("https://")) {
+    return image;
+  }
+
+  if (image.startsWith("/uploads")) {
+    return `http://localhost:8080${image}`;
+  }
+
+  return image;
+}
 export default function ManageProducts() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -55,6 +70,8 @@ export default function ManageProducts() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(""); 
 
   const loadData = async () => {
     if (!token) return;
@@ -124,10 +141,12 @@ export default function ManageProducts() {
   }, [query, categoryFilter, products]);
 
   const resetForm = () => {
-    setForm(emptyForm);
-    setEditingId(null);
-    setShowForm(false);
-    setError("");
+  setForm(emptyForm);
+  setImageFile(null);
+  setImagePreview("");
+  setEditingId(null);
+  setShowForm(false);
+  setError("");
   };
 
   const startEdit = (item) => {
@@ -147,26 +166,60 @@ export default function ManageProducts() {
       categoryId: String(item.categoryId || ""),
       active: item.active ?? true,
     });
+    setImageFile(null);
+    setImagePreview(item.image || "");
     setError("");
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setSaving(true);
-    setError("");
+  const handleImageFileChange = (event) => {
+  const file = event.target.files?.[0];
 
-    try {
-      const payload = {
-        ...form,
-        slug: form.slug?.trim() ? form.slug.trim() : slugify(form.name),
-        price: Number(form.price),
-        oldPrice: form.oldPrice ? Number(form.oldPrice) : null,
-        rating: Number(form.rating),
-        sold: Number(form.sold),
-        stock: Number(form.stock),
-        categoryId: Number(form.categoryId),
-        active: Boolean(form.active),
-        images: form.image ? [form.image.trim()] : [],
+  if (!file) {
+    setImageFile(null);
+    setImagePreview(form.image || "");
+    return;
+  }
+
+  setImageFile(file);
+  setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleImageUrlChange = (event) => {
+    const value = event.target.value;
+
+    setForm((prev) => ({
+      ...prev,
+      image: value,
+    }));
+
+    setImageFile(null);
+    setImagePreview(value);
+  };
+
+  const handleSubmit = async (event) => {
+  event.preventDefault();
+  setSaving(true);
+  setError("");
+
+  try {
+    let imageUrl = form.image?.trim() || "";
+
+    if (imageFile) {
+      imageUrl = await uploadProductImage(token, imageFile);
+    }
+
+    const payload = {
+      ...form,
+      slug: form.slug?.trim() ? form.slug.trim() : slugify(form.name),
+      price: Number(form.price),
+      oldPrice: form.oldPrice ? Number(form.oldPrice) : null,
+      rating: Number(form.rating),
+      sold: Number(form.sold),
+      stock: Number(form.stock),
+      categoryId: Number(form.categoryId),
+      active: Boolean(form.active),
+      image: imageUrl,
+      images: imageUrl ? [imageUrl] : [],
       };
 
       if (editingId) {
@@ -297,9 +350,32 @@ export default function ManageProducts() {
                     />
                   </div>
                 </div>
-                <div className="filter-field">
-                  <label>Ảnh</label>
-                  <input value={form.image} onChange={(e) => setForm((p) => ({ ...p, image: e.target.value }))} />
+                <div className="filter-field product-image-field">
+                  <label>Ảnh sản phẩm</label>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                  />
+
+                  <input
+                    value={form.image}
+                    onChange={handleImageUrlChange}
+                    placeholder="Hoặc dán URL ảnh sản phẩm"
+                  />
+
+                  {imagePreview && (
+                    <div className="product-image-preview">
+                      <img
+                        src={getImageUrl(imagePreview)}
+                        alt="Xem trước sản phẩm"
+                        onError={(event) => {
+                          event.currentTarget.src = FALLBACK_IMAGE;
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="filter-field">
                   <label>Mô tả</label>
@@ -343,7 +419,13 @@ export default function ManageProducts() {
                 <div className="table-row" key={product.id}>
                   <span>{product.id}</span>
                   <span className="product-cell">
-                    <img src={product.image} alt={product.name} />
+                    <img
+                      src={getImageUrl(product.image)}
+                      alt={product.name}
+                      onError={(event) => {
+                        event.currentTarget.src = FALLBACK_IMAGE;
+                      }}
+                    />
                     <div>
                       <strong>{product.name}</strong>
                       <small>{product.badge}</small>
