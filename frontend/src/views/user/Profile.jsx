@@ -19,6 +19,45 @@ import Footer from "../../components/layout/Footer";
 
 import "./Profile.css";
 
+const ORDER_STATUS_LABELS = {
+  PENDING: "Chờ xác nhận",
+  CONFIRMED: "Đã xác nhận",
+  SHIPPING: "Đang vận chuyển",
+  DELIVERED: "Hoàn thành",
+  CANCELLED: "Đã hủy",
+};
+
+const PAYMENT_STATUS_LABELS = {
+  UNPAID: "Chưa thanh toán",
+  PENDING: "Chờ thanh toán",
+  PAID: "Đã thanh toán",
+  FAILED: "Thanh toán thất bại",
+  REFUNDED: "Đã hoàn tiền",
+  CANCELLED: "Đã hủy thanh toán",
+};
+
+function matchesOrderFilter(order, filter) {
+  const status = order.status?.toUpperCase();
+  const paymentStatus = order.paymentStatus?.toUpperCase();
+
+  switch (filter) {
+    case "pending":
+      return (
+        (paymentStatus === "UNPAID" || paymentStatus === "PENDING") &&
+        status !== "CANCELLED" &&
+        status !== "DELIVERED"
+      );
+    case "shipping":
+      return status === "CONFIRMED" || status === "SHIPPING";
+    case "delivered":
+      return status === "DELIVERED";
+    case "cancelled":
+      return status === "CANCELLED";
+    default:
+      return true;
+  }
+}
+
 function Profile() {
   const { user, logout, updateUserProfile, updateUserAvatar } = useAuth();
   const { favoriteIds } = useFavorite();
@@ -57,6 +96,8 @@ function Profile() {
 
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [orderError, setOrderError] = useState("");
+  const [orderReloadKey, setOrderReloadKey] = useState(0);
   const [cancellingOrderId, setCancellingOrderId] = useState(null);
   const [cancelTargetOrderId, setCancelTargetOrderId] = useState(null);
   const [orderMessage, setOrderMessage] = useState(null);
@@ -118,18 +159,20 @@ function Profile() {
     async function loadOrders() {
       if (activeTab === "orders" && user?.token) {
         setLoadingOrders(true);
+        setOrderError("");
         try {
           const data = await orderService.fetchMyOrders(user.token);
           setOrders(data || []);
         } catch (error) {
           console.error("Lỗi tải đơn hàng:", error);
+          setOrderError(error.message || "Không thể tải danh sách đơn hàng.");
         } finally {
           setLoadingOrders(false);
         }
       }
     }
     loadOrders();
-  }, [activeTab, user]);
+  }, [activeTab, user, orderReloadKey]);
 
   useEffect(() => {
     async function loadAddresses() {
@@ -439,8 +482,8 @@ function Profile() {
           cancelled: "Bạn chưa có đơn hàng đã hủy.",
         };
 
-        const filteredOrders = orders.filter(o =>
-          orderFilter === "all" ? true : o.status?.toLowerCase() === orderFilter.toLowerCase()
+        const filteredOrders = orders.filter((order) =>
+          matchesOrderFilter(order, orderFilter)
         );
 
         return (
@@ -470,22 +513,69 @@ function Profile() {
                 <div className="empty-state">
                   <p>Đang tải đơn hàng...</p>
                 </div>
+              ) : orderError ? (
+                <div className="empty-state profile-order-error">
+                  <p>{orderError}</p>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setOrderReloadKey((key) => key + 1)}
+                  >
+                    Thử tải lại
+                  </button>
+                </div>
               ) : filteredOrders.length === 0 ? (
                 <div className="empty-state">
                   <p>{orderStatusMessages[orderFilter]}</p>
                 </div>
               ) : (
-                <div className="order-list" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="profile-order-list">
                   {filteredOrders.map(order => (
-                    <div key={order.id} style={{ border: '1px solid #eaeaea', borderRadius: '12px', padding: '20px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eaeaea', paddingBottom: '10px' }}>
-                        <strong>Đơn hàng #{order.id}</strong>
-                        <span style={{ color: '#d32f2f', fontWeight: 'bold' }}>{order.status}</span>
+                    <article key={order.id} className="profile-order-card">
+                      <div className="profile-order-card-header">
+                        <div>
+                          <strong>Đơn hàng #{order.id}</strong>
+                          <span>
+                            {order.createdDate
+                              ? new Date(order.createdDate).toLocaleString("vi-VN")
+                              : ""}
+                          </span>
+                        </div>
+                        <span className={`profile-order-status ${order.status?.toLowerCase() || ""}`}>
+                          {ORDER_STATUS_LABELS[order.status] || order.status || "Không rõ"}
+                        </span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666' }}>
-                        <span>Ngày đặt: {new Date(order.createdDate).toLocaleDateString('vi-VN')}</span>
+
+                      <div className="profile-order-products">
+                        {(order.items || []).map((item) => (
+                          <div className="profile-order-product" key={item.id}>
+                            {item.image ? (
+                              <img src={item.image} alt={item.productName || "Sản phẩm"} />
+                            ) : (
+                              <div className="profile-order-product-placeholder">SP</div>
+                            )}
+                            <div>
+                              <strong>{item.productName || "Sản phẩm"}</strong>
+                              <span>
+                                {item.quantity} × {formatCurrency(item.price)}
+                              </span>
+                            </div>
+                            <b>{formatCurrency(item.totalPrice)}</b>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="profile-order-card-footer">
+                        <div className="profile-order-payment">
+                          {PAYMENT_STATUS_LABELS[order.paymentStatus] ||
+                            order.paymentStatus ||
+                            "Chưa rõ thanh toán"}
+                        </div>
                         <div className="profile-order-actions">
-                          <strong>Tổng tiền: {formatCurrency(order.totalAmount ?? order.totalPrice)}</strong>
+                          <span>
+                            Tổng tiền:{" "}
+                            <strong>{formatCurrency(order.totalAmount ?? order.totalPrice)}</strong>
+                          </span>
                           {order.status === "PENDING" && (
                             <button
                               type="button"
@@ -496,9 +586,16 @@ function Profile() {
                               {cancellingOrderId === order.id ? "Đang hủy..." : "Hủy đơn"}
                             </button>
                           )}
+                          <button
+                            type="button"
+                            className="profile-order-detail-btn"
+                            onClick={() => navigate(`/orders/${order.id}`)}
+                          >
+                            Xem chi tiết
+                          </button>
                         </div>
                       </div>
-                    </div>
+                    </article>
                   ))}
                 </div>
               )}

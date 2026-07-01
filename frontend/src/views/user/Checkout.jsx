@@ -170,7 +170,8 @@ export default function Checkout() {
           </Link>
 
           <Link
-            to="/orders"
+            to="/profile"
+            state={{ activeTab: "orders" }}
             className="checkout-edit-cart"
             style={{ marginTop: 12 }}
           >

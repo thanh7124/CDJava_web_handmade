@@ -22,18 +22,32 @@
 
 .logo {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0;
+  align-items: center;
+  margin-right: 36px;
   color: #2a211d;
-  font-size: 2rem;
-  font-weight: 900;
-  letter-spacing: -0.04em;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.logo span {
-  color: var(--primary-color);
+.logo-image-frame {
+  position: relative;
+  display: block;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #f8f3e8;
+  box-shadow: 0 7px 18px rgba(46, 94, 92, 0.13);
+}
+
+.logo-image {
+  position: absolute;
+  top: -17px;
+  left: -56px;
+  width: 174px;
+  max-width: none;
+  height: auto;
 }
 
 .nav-links {
@@ -445,6 +459,10 @@
 }
 
 @media (max-width: 1280px) {
+  .logo {
+    margin-right: 0;
+  }
+
   .header-inner {
     grid-template-columns: auto 1fr;
   }
@@ -479,7 +497,19 @@
   }
 
   .logo {
-    font-size: 1.7rem;
+    justify-self: start;
+  }
+
+  .logo-image-frame {
+    width: 52px;
+    height: 52px;
+    flex-basis: 52px;
+  }
+
+  .logo-image {
+    top: -15px;
+    left: -50px;
+    width: 156px;
   }
 
   .nav-links {
