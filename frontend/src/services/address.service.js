@@ -1,11 +1,32 @@
 const API_URL = "http://localhost:8080/api/addresses";
 
 async function handleResponse(response) {
-  const data = await response.json();
-  if (!response.ok || data.code !== 200) {
-    throw new Error(data.message || "Có lỗi xảy ra");
+  const responseText = await response.text();
+  let data = null;
+
+  if (responseText) {
+    try {
+      data = JSON.parse(responseText);
+    } catch {
+      throw new Error(
+        `Backend trả về dữ liệu không hợp lệ (HTTP ${response.status})`
+      );
+    }
   }
-  return data.result;
+
+  if (!response.ok || data?.code !== 200) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(
+        "Phiên đăng nhập đã hết hạn. Vui lòng đăng xuất và đăng nhập lại"
+      );
+    }
+
+    throw new Error(
+      data?.message || `Không thể xử lý địa chỉ (HTTP ${response.status})`
+    );
+  }
+
+  return data?.result;
 }
 
 export async function getAddresses(token) {

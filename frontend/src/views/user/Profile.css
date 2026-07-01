@@ -214,7 +214,16 @@
   font-size: 14px;
 }
 
-.profile-field input {
+.profile-field > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #4b3428;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.profile-field input,
+.profile-field select {
   width: 100%;
   background: #faf5f0;
   border: 1px solid #e6d7cf;
@@ -224,9 +233,19 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.profile-field input:focus {
+.profile-field input:focus,
+.profile-field select:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 4px rgba(167, 95, 55, 0.12);
+}
+
+.profile-field select {
+  appearance: auto;
+  margin-bottom: 16px;
+}
+
+.profile-field + .ghn-address-error {
+  margin-bottom: 16px;
 }
 
 .profile-actions {

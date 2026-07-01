@@ -348,6 +348,10 @@ public OrderResponse updateOrderInfo(Long id, AdminOrderUpdateRequest request) {
             throw new RuntimeException("Số điện thoại không được để trống");
         }
 
+        if (!request.getPhone().trim().matches("\\d{10}")) {
+            throw new RuntimeException("Số điện thoại phải có đúng 10 chữ số");
+        }
+
         if (request.getAddress() == null || request.getAddress().trim().isEmpty()) {
             throw new RuntimeException("Địa chỉ không được để trống");
         }

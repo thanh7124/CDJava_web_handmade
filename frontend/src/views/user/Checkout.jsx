@@ -4,6 +4,10 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { checkoutApi } from "../../services/order.service";
 import { formatCurrency } from "../../services/product.service";
+import GhnAddressFields, {
+  emptyGhnLocation,
+  formatGhnAddress,
+} from "../../components/address/GhnAddressFields";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import "./Checkout.css";
@@ -19,9 +23,9 @@ export default function Checkout() {
     email: user?.email || "",
     phone: user?.phone || "",
     address: "",
-    city: "",
     note: "",
   });
+  const [shippingLocation, setShippingLocation] = useState(emptyGhnLocation);
 
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [successOrder, setSuccessOrder] = useState(null);
@@ -74,15 +78,17 @@ export default function Checkout() {
 
     if (!billingInfo.phone.trim()) {
       nextErrors.phone = "Nhập số điện thoại";
+    } else if (!/^\d{10}$/.test(billingInfo.phone.trim())) {
+      nextErrors.phone = "Số điện thoại phải có đúng 10 chữ số";
     }
 
     if (!billingInfo.address.trim()) {
       nextErrors.address = "Nhập địa chỉ giao hàng";
     }
 
-    if (!billingInfo.city.trim()) {
-      nextErrors.city = "Nhập thành phố / tỉnh";
-    }
+    if (!shippingLocation.provinceId) nextErrors.province = "Chọn tỉnh / thành phố";
+    if (!shippingLocation.districtId) nextErrors.district = "Chọn quận / huyện";
+    if (!shippingLocation.wardCode) nextErrors.ward = "Chọn phường / xã";
 
     if (cartItems.length === 0) {
       nextErrors.cart = "Giỏ hàng đang trống";
@@ -98,7 +104,8 @@ export default function Checkout() {
 
     setBillingInfo((prev) => ({
       ...prev,
-      [name]: value,
+      [name]:
+        name === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value,
     }));
   };
 
@@ -115,7 +122,10 @@ export default function Checkout() {
     try {
       setSubmitting(true);
 
-      const fullAddress = `${billingInfo.address.trim()}, ${billingInfo.city.trim()}`;
+      const fullAddress = formatGhnAddress(
+        billingInfo.address,
+        shippingLocation
+      );
 
       const order = await checkoutApi(user.token, {
         recipientName: billingInfo.fullName.trim(),
@@ -234,6 +244,9 @@ export default function Checkout() {
                 value={billingInfo.phone}
                 onChange={handleChange}
                 placeholder="0901234567"
+                inputMode="numeric"
+                pattern="[0-9]{10}"
+                maxLength={10}
               />
               {errors.phone && <small>{errors.phone}</small>}
             </label>
@@ -245,22 +258,18 @@ export default function Checkout() {
                 name="address"
                 value={billingInfo.address}
                 onChange={handleChange}
-                placeholder="Số nhà, tên đường, phường/xã"
+                placeholder="Số nhà, tên đường"
               />
               {errors.address && <small>{errors.address}</small>}
             </label>
 
-            <label className="checkout-field">
-              <span>Thành phố / Tỉnh</span>
-              <input
-                type="text"
-                name="city"
-                value={billingInfo.city}
-                onChange={handleChange}
-                placeholder="Hà Nội"
-              />
-              {errors.city && <small>{errors.city}</small>}
-            </label>
+            <GhnAddressFields
+              token={user?.token}
+              value={shippingLocation}
+              onChange={setShippingLocation}
+              fieldClassName="checkout-field"
+              errors={errors}
+            />
 
             <label className="checkout-field checkout-field-full">
               <span>Ghi chú đơn hàng</span>

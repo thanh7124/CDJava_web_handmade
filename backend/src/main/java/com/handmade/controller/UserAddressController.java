@@ -46,6 +46,10 @@ public class UserAddressController {
             throw new RuntimeException("Vui lòng điền đầy đủ thông tin địa chỉ");
         }
 
+        if (!phone.trim().matches("\\d{10}")) {
+            throw new RuntimeException("Số điện thoại phải có đúng 10 chữ số");
+        }
+
         return ApiResponse.ok("Thêm địa chỉ thành công",
                 userAddressService.addAddress(principal.getName(), recipientName, phone, address, setDefault));
     }

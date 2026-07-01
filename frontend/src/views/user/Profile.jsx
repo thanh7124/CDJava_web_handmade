@@ -7,6 +7,10 @@ import { fetchProductById, formatCurrency } from "../../services/product.service
 import { orderService } from "../../services/order.service";
 import { changePasswordApi, resolveAvatarUrl } from "../../services/auth.service";
 import { getAddresses, addAddress, deleteAddress, setDefaultAddress } from "../../services/address.service";
+import GhnAddressFields, {
+  emptyGhnLocation,
+  formatGhnAddress,
+} from "../../components/address/GhnAddressFields";
 import ProductCard from "../../components/product/ProductCard";
 import CancelOrderModal from "../../components/order/CancelOrderModal";
 
@@ -72,12 +76,13 @@ function Profile() {
   const [newRecipientName, setNewRecipientName] = useState("");
   const [newAddrPhone, setNewAddrPhone] = useState("");
   const [newDetail, setNewDetail] = useState("");
+  const [newLocation, setNewLocation] = useState(emptyGhnLocation);
   const [newIsDefault, setNewIsDefault] = useState(false);
   const [addrMessage, setAddrMessage] = useState(null);
   const [addrMessageType, setAddrMessageType] = useState("success");
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.token) {
       navigate("/login");
     }
   }, [user, navigate]);
@@ -198,11 +203,18 @@ function Profile() {
   const handleAddAddress = async (e) => {
     e.preventDefault();
     setAddrMessage(null);
+
+    if (!/^\d{10}$/.test(newAddrPhone.trim())) {
+      setAddrMessage("Số điện thoại phải có đúng 10 chữ số");
+      setAddrMessageType("error");
+      return;
+    }
+
     try {
       const created = await addAddress(user.token, {
         recipientName: newRecipientName.trim(),
         phone: newAddrPhone.trim(),
-        address: newDetail.trim(),
+        address: formatGhnAddress(newDetail, newLocation),
         isDefault: newIsDefault,
       });
     
@@ -212,6 +224,7 @@ function Profile() {
       setNewRecipientName("");
       setNewAddrPhone("");
       setNewDetail("");
+      setNewLocation(emptyGhnLocation);
       setNewIsDefault(false);
       setAddrMessage("Thêm địa chỉ thành công");
       setAddrMessageType("success");
@@ -621,10 +634,16 @@ function Profile() {
                 <div className="profile-field">
                   <label>Số điện thoại *</label>
                   <input
-                    type="text"
+                    type="tel"
                     value={newAddrPhone}
-                    onChange={(e) => setNewAddrPhone(e.target.value)}
+                    onChange={(e) =>
+                      setNewAddrPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+                    }
                     placeholder="0901234567"
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
+                    maxLength={10}
+                    title="Số điện thoại phải có đúng 10 chữ số"
                     required
                   />
                 </div>
@@ -635,10 +654,17 @@ function Profile() {
                     type="text"
                     value={newDetail}
                     onChange={(e) => setNewDetail(e.target.value)}
-                    placeholder="Số 123 Đường ABC, Phường X, Quận Y, Tỉnh Z"
+                    placeholder="Số 123, đường ABC"
                     required
                   />
                 </div>
+
+                <GhnAddressFields
+                  token={user?.token}
+                  value={newLocation}
+                  onChange={setNewLocation}
+                  fieldClassName="profile-field"
+                />
 
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                   <input
