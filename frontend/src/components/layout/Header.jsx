@@ -7,7 +7,6 @@ import { useAuth } from "../../context/AuthContext";
 import { fetchCategories, fetchProductPage } from "../../services/product.service";
 import "./Header.css";
 
-const LOGO_URL = "http://localhost:8080/uploads/avatars/logo.jpg";
 
 function Header() {
   const cart = useOptionalCart();
@@ -137,8 +136,9 @@ function Header() {
     <header className="header">
       <div className="header-inner">
         <Link to="/" className="logo" aria-label="Handmade Shop - Trang chủ">
-          <span className="logo-image-frame" aria-hidden="true">
-            <img src={LOGO_URL} alt="" className="logo-image" />
+          <span className="logo-wordmark">
+            <span className="logo-wordmark-main">Handmade</span>
+            <span className="logo-wordmark-accent">Shop</span>
           </span>
         </Link>
 

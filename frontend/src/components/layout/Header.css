@@ -23,33 +23,37 @@
 .logo {
   display: inline-flex;
   align-items: center;
-  margin-right: 36px;
-  color: #2a211d;
+  justify-content: center;
+  width: 205px;
+  height: 64px;
+  margin-right: 28px;
   text-decoration: none;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .logo-image-frame {
-  position: relative;
-  display: block;
-  width: 58px;
-  height: 58px;
-  flex: 0 0 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 188px;
+  height: 54px;
+  padding: 6px 14px;
   overflow: hidden;
-  border-radius: 50%;
-  background: #f8f3e8;
-  box-shadow: 0 7px 18px rgba(46, 94, 92, 0.13);
+  border-radius: 18px;
+  background: rgba(255, 248, 240, 0.82);
+  border: 1px solid rgba(177, 132, 99, 0.12);
+  box-shadow: 0 10px 26px rgba(85, 56, 33, 0.06);
 }
 
 .logo-image {
-  position: absolute;
-  top: -17px;
-  left: -56px;
-  width: 174px;
-  max-width: none;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  mix-blend-mode: multiply;
+  filter: sepia(8%) saturate(0.9) brightness(0.98);
 }
-
 .nav-links {
   position: relative;
   display: flex;
@@ -67,22 +71,13 @@
   height: 40px;
   padding: 0 16px;
   line-height: 1;
-    padding-bottom: 0px !important;
+  padding-bottom: 0px !important;
   color: #58453a;
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 400;
   text-decoration: none;
   transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
-
-.nav-link:hover,
-.categories-toggle:hover {
-}
-
-.nav-link.active {
-  /* color: var(--primary-color); */
-}
-
 .nav-item.categories {
   position: relative;
   display: flex;
@@ -497,21 +492,20 @@
   }
 
   .logo {
-    justify-self: start;
-  }
+  width: 160px;
+  height: 54px;
+}
 
-  .logo-image-frame {
-    width: 52px;
-    height: 52px;
-    flex-basis: 52px;
-  }
+.logo-image-frame {
+  width: 150px;
+  height: 48px;
+}
 
-  .logo-image {
-    top: -15px;
-    left: -50px;
-    width: 156px;
-  }
-
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
   .nav-links {
     grid-column: auto;
     justify-content: flex-start;
