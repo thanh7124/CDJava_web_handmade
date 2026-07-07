@@ -24,6 +24,9 @@ import ManagePromotions from "./views/admin/ManagePromotions";
 import ManageActivityLogs from "./views/admin/ManageActivityLogs";
 import AdminRoute from "./routes/AdminRoute";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import ForgotPassword from "./views/user/ForgotPassword";
+import ResetPassword from "./views/user/ResetPassword";
+
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
@@ -138,6 +141,8 @@ function App() {
             </AdminRoute>
           }
         />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
     </GoogleOAuthProvider>

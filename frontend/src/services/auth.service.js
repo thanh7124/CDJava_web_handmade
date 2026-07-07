@@ -157,3 +157,26 @@ export function resolveAvatarUrl(avatar) {
   }
   return `${API_URL.replace(/\/api$/, "")}${avatar.startsWith("/") ? "" : "/"}${avatar}`;
 }
+export async function forgotPasswordApi(email) {
+  const response = await fetch(`${API_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  return handleResponse(response);
+}
+
+export async function resetPasswordApi(payload) {
+  const response = await fetch(`${API_URL}/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(response);
+}

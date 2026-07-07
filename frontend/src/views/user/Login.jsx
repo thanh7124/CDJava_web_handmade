@@ -132,7 +132,9 @@ const handleGoogleSuccess = async (credentialResponse) => {
                 Ghi nhớ đăng nhập
               </label>
 
-              <a href="/">Quên mật khẩu?</a>
+              <div className="forgot-password-row">
+                <Link to="/forgot-password">Quên mật khẩu?</Link>
+              </div>
             </div>
 
             <button type="submit" className="auth-submit-btn" disabled={loading}>
