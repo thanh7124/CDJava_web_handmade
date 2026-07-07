@@ -343,3 +343,127 @@
     padding: 4px 0;
   }
 }
+.dashboard-chart-panel {
+  margin-top: 24px;
+}
+
+.chart-panel-header {
+  align-items: flex-start;
+}
+
+.dashboard-chart-controls {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.chart-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-filter-field span {
+  color: var(--muted-color);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.chart-filter-field input,
+.chart-filter-field select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(177, 132, 99, 0.22);
+  border-radius: 14px;
+  background: #fffaf6;
+  color: #2c231d;
+  font-family: inherit;
+  font-weight: 700;
+  outline: none;
+}
+
+.chart-filter-field input:focus,
+.chart-filter-field select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(167, 95, 55, 0.1);
+}
+
+.dashboard-chart-wrapper {
+  width: 100%;
+  min-height: 330px;
+  padding: 18px 10px 6px;
+  border: 1px solid rgba(177, 132, 99, 0.14);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffdf9, #fff8f0);
+}
+
+.chart-summary-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 22px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  color: #6d5548;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.chart-summary-row strong {
+  color: #2c231d;
+}
+
+.dashboard-status-chart {
+  width: 100%;
+  min-height: 260px;
+  padding: 8px 0;
+  border-radius: 18px;
+  background: #fffaf6;
+}
+
+.status-badge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 150px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.status-badge.pending {
+  background: #fff4e9;
+  color: #a75f37;
+}
+
+.status-badge.success {
+  background: #e6f5ea;
+  color: #2f7c4d;
+}
+
+.status-badge.danger {
+  background: #fde8e8;
+  color: #b84444;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-chart-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-chart-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-summary-row {
+    justify-content: flex-start;
+  }
+
+  .status-badge {
+    min-width: auto;
+  }
+}
