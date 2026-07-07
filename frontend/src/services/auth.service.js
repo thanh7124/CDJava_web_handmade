@@ -34,7 +34,17 @@ export async function registerApi(payload) {
 
   return handleResponse(response);
 }
+export async function googleLoginApi(credential) {
+  const response = await fetch(`${API_URL}/auth/google`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ credential }),
+  });
 
+  return handleResponse(response);
+}
 /*
   Các hàm dưới đây giữ lại để tránh lỗi nếu Profile/Header/file cũ còn import.
   Login/Register hiện tại nên dùng AuthContext → loginApi/registerApi.

@@ -10,6 +10,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.handmade.dto.GoogleLoginRequest;
+import com.handmade.dto.GoogleTokenInfoResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.UUID;
+
+
 @Service
 public class AuthService {
 
@@ -18,16 +27,21 @@ public class AuthService {
     private final JwtService jwtService;
     private final AvatarStorageService avatarStorageService;
 
+    private final String googleClientId;
+    private final RestTemplate restTemplate = new RestTemplate();
+
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            AvatarStorageService avatarStorageService
+            AvatarStorageService avatarStorageService,
+            @Value("${google.client-id:}") String googleClientId
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.avatarStorageService = avatarStorageService;
+        this.googleClientId = googleClientId;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -148,5 +162,68 @@ public class AuthService {
         if (request.getPassword().length() < 6) {
             throw new RuntimeException("Mật khẩu phải có ít nhất 6 ký tự");
         }
+    }
+    public AuthResponse loginWithGoogle(GoogleLoginRequest request) {
+    if (googleClientId == null || googleClientId.isBlank()) {
+        throw new RuntimeException("Chưa cấu hình Google Client ID");
+    }
+
+    String url = UriComponentsBuilder
+            .fromHttpUrl("https://oauth2.googleapis.com/tokeninfo")
+            .queryParam("id_token", request.getCredential())
+            .toUriString();
+
+    GoogleTokenInfoResponse tokenInfo;
+
+    try {
+        tokenInfo = restTemplate.getForObject(url, GoogleTokenInfoResponse.class);
+    } catch (Exception exception) {
+        throw new RuntimeException("Google token không hợp lệ");
+    }
+
+    if (tokenInfo == null) {
+        throw new RuntimeException("Không xác thực được tài khoản Google");
+    }
+
+    if (tokenInfo.getAud() == null || !tokenInfo.getAud().equals(googleClientId)) {
+        throw new RuntimeException("Google Client ID không hợp lệ");
+    }
+
+    if (!tokenInfo.isEmailVerified()) {
+        throw new RuntimeException("Email Google chưa được xác minh");
+    }
+
+    if (tokenInfo.getEmail() == null || tokenInfo.getEmail().isBlank()) {
+        throw new RuntimeException("Không lấy được email từ Google");
+    }
+
+    String email = tokenInfo.getEmail().trim().toLowerCase();
+
+    User user = userRepository.findByEmail(email).orElseGet(() -> {
+        User newUser = new User();
+
+        String fullName = tokenInfo.getName();
+
+        if (fullName == null || fullName.isBlank()) {
+            fullName = email.substring(0, email.indexOf("@"));
+        }
+
+        newUser.setEmail(email);
+        newUser.setFullName(fullName);
+        newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+        newUser.setRole("USER");
+        newUser.setActive(true);
+        newUser.setAvatar(tokenInfo.getPicture());
+
+        return userRepository.save(newUser);
+    });
+
+    if (user.getActive() != null && !user.getActive()) {
+        throw new RuntimeException("Tài khoản đã bị khóa");
+    }
+
+    String token = jwtService.generateToken(user);
+
+    return new AuthResponse(token, UserResponse.from(user));
     }
 }

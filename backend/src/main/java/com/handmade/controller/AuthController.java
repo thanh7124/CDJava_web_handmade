@@ -9,6 +9,8 @@ import com.handmade.service.AuthService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
+import com.handmade.dto.GoogleLoginRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -88,6 +90,15 @@ public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request)
         return ApiResponse.ok(
                 "Cập nhật ảnh đại diện thành công",
                 authService.updateAvatar(principal.getName(), avatar)
+        );
+    }
+    @PostMapping("/google")
+    public ApiResponse<AuthResponse> loginWithGoogle(
+            @Valid @RequestBody GoogleLoginRequest request
+    ) {
+        return ApiResponse.ok(
+                "Đăng nhập bằng Google thành công",
+                authService.loginWithGoogle(request)
         );
     }
 }

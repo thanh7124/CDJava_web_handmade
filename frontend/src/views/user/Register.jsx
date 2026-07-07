@@ -5,13 +5,14 @@ import { Eye, EyeOff, Lock, Mail, User, Phone } from "lucide-react";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import { useAuth } from "../../context/AuthContext";
+import { GoogleLogin } from "@react-oauth/google";
 
 import "./Home.css";
 import "./Auth.css";
 
 function Register() {
   const navigate = useNavigate();
-  const { register, loading } = useAuth();
+  const { register, loginWithGoogle, loading } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -70,7 +71,25 @@ function Register() {
       setError(error instanceof Error ? error.message : "Đăng ký thất bại");
     }
   };
+  const handleGoogleSuccess = async (credentialResponse) => {
+  setError("");
 
+  try {
+    if (!credentialResponse?.credential) {
+      setError("Không lấy được thông tin đăng ký Google");
+      return;
+    }
+
+    await loginWithGoogle(credentialResponse.credential);
+    navigate("/");
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Đăng ký bằng Google thất bại"
+    );
+  }
+  };
   return (
     <div className="home-page">
       <Header />
@@ -187,7 +206,19 @@ function Register() {
             <button type="submit" className="auth-submit-btn" disabled={loading}>
               {loading ? "Đang đăng ký..." : "Đăng ký"}
             </button>
+            <div className="auth-divider">
+              <span>hoặc</span>
+            </div>
 
+            <div className="google-login-box">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Đăng ký bằng Google thất bại")}
+                text="signup_with"
+                shape="pill"
+                width="320"
+              />
+            </div>        
             <p className="auth-switch">
               Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
             </p>

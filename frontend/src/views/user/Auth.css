@@ -183,3 +183,31 @@
     flex-direction: column;
   }
 }
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+  color: #8a6a58;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(177, 132, 99, 0.25);
+}
+
+.google-login-box {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.google-login-box > div {
+  display: flex;
+  justify-content: center;
+}

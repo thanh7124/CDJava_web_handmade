@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
-import { loginApi, registerApi, updateProfileApi, uploadAvatarApi } from "../services/auth.service";
-
-const AuthContext = createContext(null);
+import {
+  loginApi,
+  registerApi,
+  googleLoginApi,
+  updateProfileApi,
+  uploadAvatarApi,
+} from "../services/auth.service";const AuthContext = createContext(null);
 
 const AUTH_STORAGE_KEY = "user";
 
@@ -64,6 +68,24 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   }
+  async function loginWithGoogle(credential) {
+  setLoading(true);
+
+  try {
+    const result = await googleLoginApi(credential);
+
+    const authUser = {
+      ...result.user,
+      token: result.token,
+    };
+
+    setUser(authUser);
+
+    return authUser;
+  } finally {
+    setLoading(false);
+  }
+}
 
   function logout() {
     setUser(null);
@@ -119,6 +141,7 @@ export function AuthProvider({ children }) {
       logout,
       updateUserProfile,
       updateUserAvatar,
+      loginWithGoogle,
     }),
     [user, loading, updateUserProfile, updateUserAvatar]
   );

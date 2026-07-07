@@ -8,11 +8,10 @@ import { useAuth } from "../../context/AuthContext";
 
 import "./Home.css";
 import "./Auth.css";
-
+import { GoogleLogin } from "@react-oauth/google";
 function Login() {
   const navigate = useNavigate();
-  const { login, loading } = useAuth();
-
+  const { login, loginWithGoogle, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -40,16 +39,38 @@ function Login() {
         password: formData.password,
       });
 
-      if (authUser?.role === "ADMIN") {
-        navigate("/dashboard");
-      } else {
-        navigate("/");
-      }
+      redirectAfterLogin(authUser);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Đăng nhập thất bại");
     }
   };
+  const redirectAfterLogin = (authUser) => {
+  if (authUser?.role === "ADMIN") {
+    navigate("/dashboard");
+  } else {
+    navigate("/");
+  }
+};
 
+const handleGoogleSuccess = async (credentialResponse) => {
+  setError("");
+
+  try {
+    if (!credentialResponse?.credential) {
+      setError("Không lấy được thông tin đăng nhập Google");
+      return;
+    }
+
+    const authUser = await loginWithGoogle(credentialResponse.credential);
+    redirectAfterLogin(authUser);
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Đăng nhập bằng Google thất bại"
+    );
+  }
+};
   return (
     <div className="home-page">
       <Header />
@@ -117,6 +138,19 @@ function Login() {
             <button type="submit" className="auth-submit-btn" disabled={loading}>
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </button>
+            <div className="auth-divider">
+              <span>hoặc</span>
+            </div>
+
+            <div className="google-login-box">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Đăng nhập bằng Google thất bại")}
+                text="signin_with"
+                shape="pill"
+                width="320"
+              />
+            </div>
 
             <p className="auth-switch">
               Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>

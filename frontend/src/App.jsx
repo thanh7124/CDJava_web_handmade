@@ -23,9 +23,13 @@ import ManageCategories from "./views/admin/ManageCategories";
 import ManagePromotions from "./views/admin/ManagePromotions";
 import ManageActivityLogs from "./views/admin/ManageActivityLogs";
 import AdminRoute from "./routes/AdminRoute";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 function App() {
   return (
+    <GoogleOAuthProvider clientId={googleClientId}>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
@@ -136,6 +140,7 @@ function App() {
         />
       </Routes>
     </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
 
