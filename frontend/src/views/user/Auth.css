@@ -211,3 +211,30 @@
   display: flex;
   justify-content: center;
 }
+.auth-success {
+  padding: 12px 14px;
+  border: 1px solid rgba(47, 124, 77, 0.2);
+  border-radius: 14px;
+  background: #e6f5ea;
+  color: #2f7c4d;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.forgot-password-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+  margin-bottom: 8px;
+}
+
+.forgot-password-row a {
+  color: #b96638;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.forgot-password-row a:hover {
+  text-decoration: underline;
+}

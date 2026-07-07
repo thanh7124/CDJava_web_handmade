@@ -28,6 +28,7 @@ public class UserService {
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
         return UserResponse.from(user);
     }
 
@@ -46,9 +47,11 @@ public class UserService {
 
         if (request.getRole() != null && !request.getRole().isBlank()) {
             String role = request.getRole().trim().toUpperCase();
+
             if (!"USER".equals(role) && !"ADMIN".equals(role)) {
                 throw new RuntimeException("Vai trò không hợp lệ");
             }
+
             user.setRole(role);
         }
 
@@ -59,6 +62,7 @@ public class UserService {
         return UserResponse.from(userRepository.save(user));
     }
 
+    @Transactional
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
