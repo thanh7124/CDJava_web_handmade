@@ -1,22 +1,23 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import './Sidebar.css';
+import React from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import "./Sidebar.css";
 
 const navItems = [
-  { label: 'Tổng quan', to: '/dashboard' },
-  { label: 'Sản phẩm', to: '/manage-products' },
-  { label: 'Đơn hàng', to: '/manage-orders' },
-  { label: 'Người dùng', to: '/manage-users' },
-  { label: 'Danh mục', to: '/manage-categories' },
-  { label: '🎟️ Khuyến mại', to: '/manage-promotions' },
+  { label: "Tổng quan", to: "/dashboard" },
+  { label: "Sản phẩm", to: "/manage-products" },
+  { label: "Đơn hàng", to: "/manage-orders" },
+  { label: "Người dùng", to: "/manage-users" },
+  { label: "Danh mục", to: "/manage-categories" },
+  { label: "🎟️ Khuyến mại", to: "/manage-promotions" },
+  { label: "📝 Nhật ký", to: "/manage-activity-logs" },
 ];
 
 export default function Sidebar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/login');
+    localStorage.removeItem("user");
+    navigate("/login");
   };
 
   return (
@@ -33,7 +34,7 @@ export default function Sidebar() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `sidebar-link${isActive ? ' active' : ''}`
+                `sidebar-link${isActive ? " active" : ""}`
               }
             >
               <span className="link-label">{item.label}</span>
@@ -42,7 +43,11 @@ export default function Sidebar() {
         </nav>
 
         <div className="sidebar-logout">
-          <button type="button" className="sidebar_logout_btn" onClick={handleLogout}>
+          <button
+            type="button"
+            className="sidebar_logout_btn"
+            onClick={handleLogout}
+          >
             Đăng xuất
           </button>
         </div>

@@ -21,6 +21,7 @@ import ManageUsers from "./views/admin/ManageUsers";
 import UserDetail from "./views/admin/UserDetail";
 import ManageCategories from "./views/admin/ManageCategories";
 import ManagePromotions from "./views/admin/ManagePromotions";
+import ManageActivityLogs from "./views/admin/ManageActivityLogs";
 import AdminRoute from "./routes/AdminRoute";
 
 function App() {
@@ -44,15 +45,95 @@ function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:id" element={<OrderDetail />} />
 
-        <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
-        <Route path="/manage-products" element={<AdminRoute><ManageProducts /></AdminRoute>} />
-        <Route path="/manage-products/:id" element={<AdminRoute><AdminProductDetail /></AdminRoute>} />
-        <Route path="/manage-orders" element={<AdminRoute><ManageOrders /></AdminRoute>} />
-        <Route path="/manage-orders/:id" element={<AdminRoute><AdminOrderDetail /></AdminRoute>} />
-        <Route path="/manage-users" element={<AdminRoute><ManageUsers /></AdminRoute>} />
-        <Route path="/manage-users/:id" element={<AdminRoute><UserDetail /></AdminRoute>} />
-        <Route path="/manage-categories" element={<AdminRoute><ManageCategories /></AdminRoute>} />
-        <Route path="/manage-promotions" element={<AdminRoute><ManagePromotions /></AdminRoute>} />
+        <Route
+          path="/dashboard"
+          element={
+            <AdminRoute>
+              <Dashboard />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/manage-products"
+          element={
+            <AdminRoute>
+              <ManageProducts />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/manage-products/:id"
+          element={
+            <AdminRoute>
+              <AdminProductDetail />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/manage-orders"
+          element={
+            <AdminRoute>
+              <ManageOrders />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/manage-orders/:id"
+          element={
+            <AdminRoute>
+              <AdminOrderDetail />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/manage-users"
+          element={
+            <AdminRoute>
+              <ManageUsers />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/manage-users/:id"
+          element={
+            <AdminRoute>
+              <UserDetail />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/manage-categories"
+          element={
+            <AdminRoute>
+              <ManageCategories />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/manage-promotions"
+          element={
+            <AdminRoute>
+              <ManagePromotions />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/manage-activity-logs"
+          element={
+            <AdminRoute>
+              <ManageActivityLogs />
+            </AdminRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
