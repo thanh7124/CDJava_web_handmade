@@ -6,6 +6,7 @@ import com.handmade.dto.ReviewSummaryResponse;
 import com.handmade.service.ReviewService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -30,14 +31,18 @@ public class ReviewController {
     }
 
     @PostMapping("/products/{productId}/reviews")
-    public ResponseEntity<ReviewResponse> createReview(@PathVariable Long productId,
-                                                       @RequestBody ReviewRequest request) {
+    public ResponseEntity<ReviewResponse> createReview(
+        @PathVariable Long productId,
+        @Valid @RequestBody ReviewRequest request
+    ) {
         return ResponseEntity.ok(reviewService.createReview(productId, request));
     }
 
     @PutMapping("/reviews/{reviewId}")
-    public ResponseEntity<ReviewResponse> updateReview(@PathVariable Long reviewId,
-                                                       @RequestBody ReviewRequest request) {
+    public ResponseEntity<ReviewResponse> updateReview(
+        @PathVariable Long reviewId,
+        @Valid @RequestBody ReviewRequest request
+    ) {
         return ResponseEntity.ok(reviewService.updateReview(reviewId, request));
     }
 

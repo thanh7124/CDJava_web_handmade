@@ -5,6 +5,7 @@ import com.handmade.dto.CheckoutRequest;
 import com.handmade.dto.OrderResponse;
 import com.handmade.service.OrderService;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class OrderController {
     }
 
     @PostMapping("/checkout")
-    public ApiResponse<OrderResponse> checkout(@RequestBody CheckoutRequest request) {
+    public ApiResponse<OrderResponse> checkout(@Valid @RequestBody CheckoutRequest request) {
         return ApiResponse.ok(
                 "Đặt hàng thành công",
                 orderService.checkout(request)

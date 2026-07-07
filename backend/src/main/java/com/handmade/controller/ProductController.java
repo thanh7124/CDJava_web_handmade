@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/products")
@@ -59,8 +60,8 @@ public class ProductController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<ProductResponse> createProduct(
-            @RequestBody ProductRequest request
-    ) {
+        @Valid @RequestBody ProductRequest request
+        ) {
         return ApiResponse.ok(
                 "Thêm sản phẩm thành công",
                 productService.createProduct(request)
@@ -70,9 +71,9 @@ public class ProductController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<ProductResponse> updateProduct(
-            @PathVariable Long id,
-            @RequestBody ProductRequest request
-    ) {
+        @PathVariable Long id,
+        @Valid @RequestBody ProductRequest request
+        ){
         return ApiResponse.ok(
                 "Cập nhật sản phẩm thành công",
                 productService.updateProduct(id, request)
